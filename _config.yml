@@ -1,0 +1,21 @@
+# Welcome to Jekyll!
+#
+# This config file is meant for settings that affect your whole blog, values
+# which you are expected to set up once and rarely need to edit after that.
+# For technical reasons, this file is *NOT* reloaded automatically when you use
+# 'jekyll serve'. If you change this file, please restart the server process.
+
+# Site settings
+title: A Physicist Gone Astray
+email: wgi@zuehlke.com
+description:  Hanging out between the toes of giants
+
+url: "https://smurve.github.io" # the base hostname & protocol for your site
+twitter_username: wgiersche
+github_username:  smurve
+
+# Build settings
+markdown: kramdown
+
+scholar:
+  bibliography_template: <abbr>[{{key}}]</abbr>{{reference}}

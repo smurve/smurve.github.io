@@ -1,0 +1,124 @@
+\documentclass[]{scrartcl}
+
+%opening
+\title{Back Propagation in fully connected layers}
+\author{Wolfgang Giersche}
+
+\begin{document}
+
+The euclidean distance or loss function \(\mathcal{C}\) for a multi-layer perceptron can be written as
+\begin{equation}
+\mathcal{C}(\vec{x},\vec{y}) = \frac{1}{2T} \sum_{t=1}^{T} \| \vec{y} - \sigma^L \circ \sigma^{L-1} \circ \cdots \circ \sigma^0 \circ \vec{x}\|^2
+\end{equation}
+where T is the number of test vectors and we defined \(\sigma^l\) as
+\begin{equation}
+\sigma^l \equiv \sigma(\vec{z^l}(\vec{a}^{l-1}) = \sigma(\mathbf{W}^l \cdot \vec{x} + \vec{b^l})
+\end{equation}
+Here,  \(\circ\) denotes the application of the function to the left on the entire term to its right. I.e., that \(\circ\) is right-associative. For example, \(\sigma^L \circ \sigma^{L-1} \circ \sigma^{L-2}\) means \(\sigma^{L-1}\) applied to \(\sigma^{L-2}\) and then \(\sigma^L\) applied to the result of the former, and so forth. Here, \(\sigma\) stands for an arbitrary differentiable activation function. Let's look at the derivates of   \(\sigma\)   with regards to the weights \(w^l_ij\):
+
+\begin{equation}
+\frac{\partial}{\partial w^l_{ij}}\sigma(\mathbf{W}^l \cdot \vec{x} + \vec{b^l}) = 
+\sum_k \sigma^\prime(z^l_k) \cdot \frac{\partial}{\partial w^l_{ij}}\sum_{m}w^l_{mk} \cdot x_m 
+\end{equation}
+
+\begin{equation}
+\frac{\partial}{\partial w^l_{ij}}\sigma(\mathbf{W}^l \cdot \vec{x} + \vec{b^l}) = 
+\frac{\partial }{\partial w^l_{ij}} \pmatrix{\
+	\sigma(\sum_k w^l_{k1} \cdot x_k + b_1 )
+	\cr \cdots \cr 
+	\sigma(\sum_k w^l_{kN} \cdot x_k + b_N)}
+\end{equation}
+
+which means that in the vector to the right, only the value with index n=j is non-zero,
+all other values are zero. For example:
+
+\begin{equation}
+\frac{\partial \sigma}{\partial w^l_{1,1}} = \pmatrix{ 
+	\sigma^\prime(z^l_1) \cdot x_1
+	\cr 0 \cr \cdots \cr 0
+}
+\end{equation}
+or
+\begin{equation}
+\frac{\partial \sigma}{\partial w^l_{2,N-1}} = \pmatrix{ 
+	0 \cr \cdots \cr 0 \cr
+	\sigma^\prime(z^l_{N-1}) \cdot x_2 \cr 0
+}
+\end{equation}
+Introducing the zeta function \(\zeta_{ik}\) (in physics, we use the \(\delta\) symbol, but that obviously has another meaning here, so we have to use an alternative)
+
+\begin{equation}
+\zeta_{ik} = 1 \arrowvert_{i = k} , \zeta_{ik} = 0 \arrowvert_{i \neq k}
+\end{equation}
+we can immediately see that
+
+\begin{equation}
+\frac{\partial w_{kn}}{\partial w_{ij}} = \zeta_{ki} \cdot \zeta_{nj}
+\end{equation}
+Note that the zeta function has the helpful effect that it collapses sums by picking the only term that is non-zero, like e.g. in
+\begin{equation}
+\sum_k a_k \cdot w_{ki} \cdot \zeta_{ki} = a_i \cdot w_{ii} 
+\end{equation}
+We can now write the derivate of the isolated function \(\sigma^l\) 
+in a very concise notation:
+\begin{equation}
+\frac{\partial}{\partial w^l_{ij}}\sigma(z^l_n) = \sigma^\prime(z^l_n) \cdot \zeta_{jn} \cdot x_i
+\end{equation}
+
+However, we intended to find \( \frac{\partial\mathcal{C}}{\partial w^l_{ij}} \) and \( \frac{\partial\mathcal{C}}{\partial b^l} \), so let's go back to the original equation (1) that defined the loss function
+\begin{equation}
+\mathcal{C}(\vec{x},\vec{y}) = \frac{1}{2}\| \vec{y} - \sigma^L \circ \sigma^{L-1} \circ \cdots \circ \sigma^0 \circ \vec{x}\|^2
+\end{equation}
+this time, we wrote it down for a single test vector, and calculate its derivatives with respect to \( \sigma \)'s function argument \( z \). We start with \(z^L\)
+\begin{equation}
+\delta^L \equiv \frac{\partial\mathcal{C}}{\partial z^L } = ( \vec{y}-\vec{\sigma}^L) \odot \sigma'(z^L)
+\end{equation}
+Please take particular note of the Ademar-product used here. Now, let's see what the next derivative looks like. Here's  \( \frac{\partial}{\partial z^{L-1}} \) by applying the chain rule again and again until we arrive at \( z^{L-1} \)
+\begin{equation}
+\delta^{L-1} \equiv \frac{\partial\mathcal{C}}{\partial z^{L-1} } =
+\left( ( \vec{y}-\vec{\sigma}^L) \odot \sigma'(z^L) 
+\cdot    \frac{\partial z^L} {\partial a^{L-1}}\right)
+\odot \frac{\partial a^{L-1}}{\partial z^{L-1}}
+\end{equation}
+\begin{equation}
+= \left( ( \vec{y}-\vec{\sigma}^L) \odot \sigma'(z^L) 
+\cdot   (W^{L})^\dagger \right) \odot \sigma^{L-1'}
+\end{equation}
+with \(   (W^{L})^\dagger  \) being the transposed of \(W^L\). Note, that I follow the convention that the Ademar-product \( \odot \) binds stronger than the matrix multiplication that follows. There's no law of associativity here, as you can conclude from the fact that the Ademar product requires vectors to have the same dimensions, whereas matrix multiplication can change just that. So the stronger binding makes sense somehow, and it avoids additional brackets.
+
+Do you see the recurrence pattern? We can now recursively define \(\delta^l\) (The formal proof by induction may be a good math exercise for the reader?). Here's the recursive definition after a little reordering to make the matrix multiplication more obvious:
+\begin{equation}
+\delta^{l} = \frac{\partial\mathcal{C}}{\partial z^{l} } =
+ ((W^{l+1})^\dagger \cdot \delta^{l+1}) \odot \sigma^\prime(z^l)
+\end{equation}
+
+In case you wonder where the transpose suddenly came from, remember that we defined the  activation of a fully connected layer l as a function of all the incoming activations from the previous layer as
+\begin{equation}
+a^l(a^{l-1}) = \sigma(z^l) = \sigma( W^l \cdot a^{l-1} + b^l )
+\end{equation}
+or component-wise
+\begin{equation}
+a^l_i = \sigma (\sum_k w^l_{ik} \cdot a^{l-1}_k + b^l_i)
+\end{equation}
+We can now calculate the derivate of \( \mathcal{C} \) with regards to \( z^{l-1} \)in terms of its components as
+\begin{equation}
+\frac{ \partial \mathcal{C}} {\partial z^{l-1}_i} =  
+\sum_k  \frac{\partial \mathcal{C}}{\partial a^l_k} \cdot   \sigma^\prime (z^l_k) \cdot \sum_m \frac{\partial z_k^l}{\partial a^{l-1}_m} \cdot \frac{\partial a^{l-1}_m}{\partial z_i^{l-1}}
+\end{equation}
+Remember our definition of the zeta function \( \zeta_{ij} \)? With the help of this, we get
+\begin{equation}
+=  \sum_k \frac{\partial \mathcal{C}}{\partial a^l_k} \cdot   \sigma^\prime (z^l_k) \cdot \sum_m w_{km} \cdot \zeta_{mi} \cdot \sigma^\prime(z_i^{l-1})
+\end{equation}
+\begin{equation}
+=  \sum_k \frac{\partial \mathcal{C}}{\partial a^l_k} \cdot   \sigma^\prime (z^l_k) \cdot w_{ki} \cdot \sigma^\prime(z_i^{l-1})
+\end{equation}
+You can now see that the summation when multiplying with \( w_{ki} \) uses the first index, not the second one. This is equivalent to multiplying with the transpose, as a transpose is defined by
+\begin{equation}
+(W^\dagger)_{ij} = W_{ji}
+\end{equation}
+
+
+\begin{equation}
+\frac{\partial }{\partial }
+\end{equation}
+\end{document}

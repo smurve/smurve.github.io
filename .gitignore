@@ -1,0 +1,12 @@
+_site
+.sass-cache
+.jekyll-metadata
+.idea/
+jekyll-wing-template.iml
+smurve.github.io.iml
+*.aux
+*.bbl
+*.blg
+*.log
+*.pdf
+*.synctex.gz
