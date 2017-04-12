@@ -32,7 +32,7 @@ eventually looking more like Keras. Having found none that truly appealed to me,
 in such a way that it leads right into re-usable components written in Scala. Most of the linear algebra will be handled with the breeze
 library, which I learned is meant to bring the rich numPy functionality to Scala community.
 
-#### Yet another introductary text
+#### Hence yet another text
 
 So here it is: Yet another introductory text on deep learning from math to code.
 
@@ -85,5 +85,4 @@ In the very end, I'll add model persistence and parallel execution strategies an
 "neural network toy box" - a name I chose to clearly distinguish my code from production-ready code seen elsewhere, 
 for - after all - I'm just a physicist astray.
 
-#### References
 
