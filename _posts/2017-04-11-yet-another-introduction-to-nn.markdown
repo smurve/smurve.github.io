@@ -12,7 +12,7 @@ A lot of introductory material has been written and is still being written about
 of the available material has reached an unbelievably high quality in both depth and accessibility, which is a rare
 combination. First and foremost, I must mention [Michael Nielson's online book](http://neuralnetworksanddeeplearning.com/) 
 and [Chris Olah's blog](http://colah.github.io/), full of utterly
-beautiful reasoning, and Ian Goodfellow's popular text book ["Deep Learning"](http://www.deeplearningbook.org/) [{% cite Goodfellow-et-al-2016 %}]. 
+beautiful reasoning, and Ian Goodfellow's popular text book ["Deep Learning"](http://www.deeplearningbook.org/). 
 So, as an analogy to the well-known saying "I'm standing on the shoulders of giants", I can only conclude that 
 I am "wandering between the toes of giants". Hence, I will often-times reference mostly Michael's and Chris' blogs over 
 and over again in this text. 
@@ -87,4 +87,3 @@ for - after all - I'm just a physicist astray.
 
 #### References
 
-{% bibliography --cited %}
