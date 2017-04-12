@@ -1,0 +1,11 @@
+---
+layout: post
+title:  "YAINN Part II: Neural Networks are just functions"
+date:   2017-04-12 11:49:45 +0200
+categories: neural networks
+permalink: yainn2
+---
+### Neural Networks are just functions
+
+
+

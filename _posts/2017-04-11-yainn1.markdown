@@ -1,8 +1,9 @@
 ---
 layout: post
-title:  "Yet another introduction to neural networks (Under construction)"
+title:  "YAINN Part I: Yet another introduction to neural networks (Under construction)"
 date:   2017-04-11 11:49:45 +0200
 categories: neural networks
+permalink: yainn1
 ---
 ### Preface
 
@@ -18,7 +19,7 @@ I am "wandering between the toes of giants". Hence, I will often-times reference
 and over again in this text. 
 
 
-#### Why yet another text?
+#### Why yet another introductory text?
 
 As I was curiously wandering through the internet, I found a lot of beautiful math, beautiful concepts and
 thorough, even more beautiful reasoning (I know I mentioned that already), but in the end there was always a grain of
@@ -28,11 +29,13 @@ a software engineer - I learned to love composable solutions so much.
 
 Some frameworks like [Keras](http://keras.io) already provide really nice toolkits/DLSs for deep learning exploration
 phases. What I was missing on my learning path was math like in Michael's blog that leads directly to software components
-eventually looking more like Keras. Having found none that truly appealed to me, I decided to re-phrase Michael's reasoning
-in such a way that it leads right into re-usable components written in Scala. Most of the linear algebra will be handled with the breeze
-library, which I learned is meant to bring the rich numPy functionality to Scala community.
+eventually looking more like Keras. Having found none that truly appealed to me, I decided to do it myself. More over, this
+time I wanted to share my thoughts and for once not only benefit from the wisdom of others. So what I'm going to do here is
+re-structure the typical math reasoning in such a way that it leads right into re-usable components written in Scala. 
+Most of the linear algebra will be handled with the breeze library, which I learned is meant to bring the rich numPy 
+functionality to Scala community.
 
-#### Hence yet another text
+#### From math to Scala
 
 So here it is: Yet another introductory text on deep learning from math to code.
 
@@ -64,15 +67,15 @@ res_b = NN.test(test_set)
 
 {% endhighlight %}
 
-It is immediately obvious to someone familiar to neural network what's happening here. All the nitty-gritty index juggling, 
+To someone familiar to neural networks it is immediately obvious what's happening here. All the nitty-gritty index juggling, 
 formal linear algebra and calculus, and non-linearity is hidden behind well-defined and well-known symbols. Rather than 
 looking at a flat block of algorithmic code representing the entire network, I can now understand the big picture 
 immediately and afterwards dive into only those parts that I'd like to understand a bit more. Furthermore, here I can 
 test the bits and pieces independently, gaining confidence for the functionality of almost any composed network. 
-Note the word "almost" here, for the risk of numerical instability lures everywhere. Obviously, there's a price with beauty. 
-Most often, it's the performance of the bigger solution. You just can't run in high heels. Some mathematical simplification 
-or computational optimizations will not be possible because the parts that could be simplified when regarded together reside 
-in different components and "don't see" each other. I'll point out the various locations where that happens.
+Note the word "almost" here, for the risk of numerical instability lures everywhere. And, obviously, beauty comes at a price. 
+You just can't run in high heels. Most often, focusing on aesthetic properties, sacrifices at least some the performance of the overall solution. 
+Some mathematical simplification or computational optimizations will not be possible because the parts that could be simplified when regarded together reside 
+in different components and for example just don't cancel each other this way. I'll point out the various locations where that happens.
 
 #### What you'll get
 
@@ -82,7 +85,11 @@ I'll deviate from his calculations, though, to allow for a one-to-one mapping in
 bit differently, my calculations are absolutely equivalent. Afterwards, I model the single functions as composable layers, 
 according to the presented math. I'll provide thorough and informative tests to verify and demonstrate the fundamental functions. 
 In the very end, I'll add model persistence and parallel execution strategies and end up with what I call a 
-"neural network toy box" - a name I chose to clearly distinguish my code from production-ready code seen elsewhere, 
+"neural network toy box" - a name I chose to clearly distinguish my naive code here from any production-ready code, 
 for - after all - I'm just a physicist astray.
 
+----------------------------
 
+But now, let's jump right into the subject:
+
+##### [Chapter II: Neural Networks are just functions]({% post_url 2017-04-12-yainn2 %})
