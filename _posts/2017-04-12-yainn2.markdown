@@ -10,7 +10,7 @@ permalink: yainn2
 \begin{equation}
 \frac{\partial}{\partial w^l_{ij}}\sigma(\mathbf{W}^l \cdot \vec{x} + \vec{b^l}) = 
 \frac{\partial }{\partial w^l_{ij}} \pmatrix{\
-	\sigma(\sum_k w^l_{k1} \cdot x_k + b_1 )
+	\sigma(\sum_k w^l_{k1} \cdot x_k + b_0 )
 	\cr \cdots \cr 
 	\sigma(\sum_k w^l_{kN} \cdot x_k + b_N)}
 \end{equation}
