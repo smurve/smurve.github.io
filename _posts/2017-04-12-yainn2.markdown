@@ -7,5 +7,5 @@ permalink: yainn2
 ---
 ### Neural Networks are just functions
 
-
+\\[ \frac{1}{n^{2}} \\]
 
