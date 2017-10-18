@@ -1,84 +1,77 @@
 ---
 layout: post
-title:  "YAINN Part I: Yet another introduction to neural networks (Under construction)"
-date:   2017-04-11 11:49:45 +0200
+title:  "YAINN Part I"
+date:   2017-10-18 11:49:45 +0200
 categories: neural networks
 permalink: yainn1
 ---
 
-### Preface
-
--------
+## YAINN: Yet another introduction to neural networks
 
 <br/>
-*When software engineering meets machine learning*
+*When machine learning meets software engineering ...*
 
 <br/>
-
 A lot of introductory material has been written and is still being written about neural networks these days, and some of the available material has reached an unbelievably high quality in both depth and accessibility, which is a rare combination. First and foremost, I must mention [Michael Nielson's online book](http://neuralnetworksanddeeplearning.com/) \cite{nielson2015}
-and [Chris Olah's blog](http://colah.github.io/) \cite{olah2015}, full of really beautiful reasoning, and Ian Goodfellow's popular text book ["Deep Learning"] (http://www.deeplearningbook.org/) \cite{goodfellow}. 
+and [Chris Olah's blog](http://colah.github.io/) \cite{olah2015}, full of really beautiful reasoning, and Ian Goodfellow's popular text book ["Deep Learning"](http://www.deeplearningbook.org/) \cite{goodfellow}. 
 So, as an analogy to the well-known saying "I'm standing on the shoulders of giants", I can only conclude that I am "wandering between the toes of giants". Hence, I will often-times refer the reader to one of these giants.
 
 <br/>
 So, why yet another introductory text?
+
 <br/>
-
-
 As I was curiously wandering through the internet on my quest to understand machine learning, I found a lot of beautiful math, beautiful concepts and thorough, even more beautiful reasoning (I know I mentioned that already), but in the end there was always a grain of salt. The provided code examples somehow never truly appealed to me. That may be in parts because of personal gusto - admittedly. But it's definitely not only because of the used language. Python is pretty much ok, I'm getting used to it. 
 
-
+<br/>
 It's because - as a software engineer - I learned to love composable solutions so much. So what this blog is going to be about is - in a nutshell - a software engineering approach to neural networks: Going from requirements (math) to maintainable code (Scala) and reusable components (traits and classes). As an extra, you'll see how vector algebra can be used as the perfect link between solution design and implementation of high performance algorithms.
 
+<br/>
 
+-----
+
+<br/>
 In September 2017, I visited the EARL conference in London. EARL stands for "Enterprise Applications of the R Language". Joe Cheng of RStudio (actually a pretty brilliant lad, as it seemed), made some jokes about the verbose naming that you typically find in Java and similar communities. He said something like *I called this thing 'Promise' - in Java they would probably have called it AbstractPromiseAdapter or so...*. Everybody had a good laugh. Well - everybody but me! That verbose naming is there for very good reasons, I thought. It became obvious to me that data analytists and software engineers have some distance to bridge, before they can work together seamlessly. As a side note, though: Sometimes we software engineers, indeed, tend to exaggerate formalism, don't we?
 
-
+<br/>
 However, the good news that I brought back with me from the conference is that a) R Shiny is really a pretty cool tool and b) the R community does in fact start to realize the need for more of what we software engineers call enterprise readiness. Testing and version control have been popular topics during the conference. I could see that the other side - the data analytics community - is already aware of the changes, and moving in for the merge. And: yes, we software developers are warming up to the practice of explorative coding, too. Scala enjoyed a scripting environment called REPL since its inception, and JAVA 9 now also comes with a REPL, at last. I wonder, though, whether we software engineers are sufficiently aware of the fact that the cool kid - machine learning - comes with a pretty demanding friend: math!
 
-
+<br/>
 Data analytics and software engineering are two different academical fields, that - obviously - share common habits. For example, they both involve some kind of programming to solve their particular problems. But their respective approaches to programming are sometimes radically different. So let's compare them very shortly:
 
-
+<br/>
 The problems within data analytics are mostly expressed in terms of mathematics. Data analysts often call themselves  scientists (as opposed to *engineers*). Their programming experience is mainly determined by the need to easily express those mathematical concepts and explore the plethora of algorithms available to them to find the best solution to a given problem. Data analytics has a strong exploratory flavor and the typical tools and languages, such as mathlab, R, or Python, support expecially those needs. 
 
+<br/>
+Software engineering, however, usually is more concerned with modeling. Modelling some existing part of the real world - mostly the business world. Many times, software engineers are taking into consideration the human interaction with that part of the world. Engineers use patterns and principles, taking into consideration the entire life cycle of a software product. They often call themselves *craftsmen* and they love to talk about maintainability, non-functional requirements and javascript frameworks.
 
-Software engineering, however, usually is more concerned with modeling. Modelling some existing part of the real world - mostly the business world. Many times they're taking into consideration the human interaction with that part of the world. Engineers use patterns and principles, taking into consideration the entire life cycle of a software product. They often call themselves *craftsmen* and they love to talk about maintainability, non-functional requirements and javascript frameworks.
+<br/>
+These two worlds coexisted in peace and mutual ignorance for decades (Exaggerating, of course ;-). Now, with machine learning on the very maximum of Gartners hype cycle \cite{gartner2017}, however, inevitably more and more software products will have to leverage some kind of machine learning to keep up with growing expectations. Data analysts' artifacts will have to share the application code's entire lifecycle to be incorporated into maintainable software products. Data analysts and software engineers will have to talk more, understand each other better, and most importantly, start to respect each others' programming habits. Eventually, I believe, the respective fields will even merge together. I believe that I'm spotting signs that we're already building roads for that big merger in the success of the Scala language. In his well-received talk in New York in 2016, Dean (Snow) Wampler of Lightbend eloquently called Scala "the unpredicted lingua franca of data science" \cite{wampler2016}. Certainly, Dean is somewhat biased, obviously, as his company has some stakes in the language. But he made some very good points. Scala is extremly expressive without being too verbose, and it is statically typed and feature-rich. It supports both the exploratory and the enterprise coding style. That's why I'll be using Scala's ecosystem in the accompanying source code for this blog to prove that point. You'll see: It can be used exploratorily and expressively when dealing with mathematical concepts, and still easily produces well-designed production-ready artifacts when closing in on production deployments.
 
+<br/>
+Just like in almost every other introductory text, in this post I will solve the problem of recognizing hand-written digits. Yes (@Joel) - I know it's rather boring, but since the problem itself is not at the heart of the matter but rather is the way *how* we solve it within the reign of software engineering. I hope you don't mind too much.
 
-----------------
-
-
-These two worlds coexisted in peace and mutual ignorance for decades (Exaggerating, of course ;-). Now, with machine learning on the very maximum of Gartners hype cycle \cite{gartner2017}, however, inevitably more and more software products will have to leverage some kind of machine learning to keep up with growing expectations. Data analysts' artifacts will have to share the application code's entire lifecycle to be incorporated into maintainable software products. Data analysts and software engineers will have to talk more, understand each other better, and most importantly, start to respect each others' programming habits. Eventually, I believe, the respective fields will even merge together. I believe that I'm spotting signs that we're already building roads for that big merger in the success of the Scala language. In his well-received talk in New York in 2016, Dean (Snow) Wampler of Lightbend eloquently called Scala "the unpredicted lingua franca of data science" \cite{wampler2016}. Certainly, Dean is somewhat biased, obviously, as his company has some stakes in the language. But he made some very good points. Scala is extremely expressive without being too verbose, and it's statically typed and feature-rich. It support both the exploratory and the enterprise coding style. I'll be using the potential of Scala's ecosystem in the accompanying source code for this blog to prove that point. You'll see: It can be used exploratorily and expressively when dealing with mathematical concepts, and still easily produces well-designed production-ready artifacts when closing in on production deployments.
-
-----------------
-
-Just like in almost every other introductory text, in this post I will solve the problem of recognizing hand-written digits. Yes - I know it's rather boring, but since the problem itself it not at the heart of the matter but rather the way *how* we solve it within the reign of software engineering, I hope you don't mind too much.
-
-So, it's about the MNIST - Machine Learning's "Hello World" again, in which respect it's just *Yet Another Introduction to Neural Networks*. In some respect though, I'll follow a different approach: I firmly assume you have some good understanding of - and interest in - programming (preferrably, but not necessarily in Scala or any other rather functional language), and you have some foundational knowledge of calculus and linear algebra and mathematical notation in general. And you definitely should have seen, although not necessarily need to fully understand Michael Nielson's excellent introductory blog \cite{nielson2015} and Chris Olah's breath-taking art of sense-making and visualization \cite{olah2015}. Machine learning comes with a wealth of best practices that I won't repeat here, simply because Michael and Chris - amongst many others - have already done such a splendid job. 
+So, it's about MNIST's Machine Learning version of "Hello World" again, in which respect it's just *Yet Another Introduction to Neural Networks*. In some respect though, I'll follow a different approach: I firmly assume you have some good understanding of - and interest in - programming (preferrably, but not necessarily in Scala or any other rather functional language), and you have some foundational knowledge of calculus and linear algebra and mathematical notation in general. And you definitely should have seen, although not necessarily need to fully understand Michael Nielson's excellent introductory blog \cite{nielson2015} and Chris Olah's breath-taking art of sense-making and visualization \cite{olah2015}. Machine learning comes with a wealth of best practices that I won't repeat here, simply because Michael and Chris - amongst many others - have already done such a splendid job. 
 
 Contrary to Michael and most other authors, though, in this post I will intentionally avoid the typical biological metaphors wherever possible. So - no neurons firing in this blog post. Of course, I can't avoid all of the terminology, so I will occasionally fall back to the well-known lingo where otherwise I'd jeopardize your understanding of the context.
 
-----------------
-
-Before I dive into the math and scare you off for the rest of time: Like programming languages, math is a way to precisely describe what has to be done. Consider: If you're a software developer - in case you happen to find yourself in the middle of a cool innovative machine learning project, you will not so unlikely be concerned with some math at some point in time. The data scientist of your team may turn to you and ask you to implement some algorithm within the product you're developing. If you're lucky you may succeed without understandig and just with manually transpiling her R or python script. If not, you may not make it in the team for too long. Shame - such a cool project!
+<br/>
+Before I dive into the math and scare you off for the rest of time, please do always keep in mind: Like programming languages, math is a way to precisely describe what has to be done. Consider: If you're a software developer - in case you happen to find yourself in the middle of a cool innovative machine learning project, you will not so unlikely be concerned with some math at some point in time. The data scientist of your team may turn to you and ask you to implement some algorithm within the product you're developing. If you're lucky you may succeed without understandig and just with manually transpiling her R or python script. If not, chances are you will not stay in the team for too long. Shame - such a cool project!
 
 The math I present here may look difficult at times. Believe me, it's not. Not at all. The point is: Most of us are just not used to it (anymore). Math is simply unmisunderstandably precise - and extremely concise. Things wouldn't work otherwise. And look: the things I present here are not even close to *rocket science*. It's applied undergraduate level math at best. The key to understanding this post - and in general to getting somewhere in the more scientific part of software engineering is often not intelligence - but rather dedication, perserverance and a hell lot of concentration on the subject. Ready for it?
 
 Well, then let's get started.
- 
 
-----------------
 
-# A Function to Optimize
- 
+### A Function to Optimize
 
-Neural networks can solve - amongst others - a particular category of problems, now mostly referred to as \emph{classification} problems. A classification can be seen as just one special interpretation of a mathematical function. An arbitrary function \(f(x): R^m \rightarrow R^n\) that maps an input vector \(\mathbf{x} \in R^m\) to an output vector \(\mathbf{y} \in R^n\):
+
+Neural networks can solve - amongst others - a particular category of problems, now mostly referred to as *classification* problems. A classification can be seen as just one special interpretation of a mathematical function. An arbitrary function \\(f(x): R^m \rightarrow R^n\\) that maps an input vector \\(\mathbf{x} \in R^m\\) to an output vector \\(\mathbf{y} \in R^n\\):
 
 \begin{equation}
 	\mathbf{y}=f(\mathbf{x})
 \end{equation}
 
-may be interpreted as a classification function, if that resulting vector is somewhat close to a so-called \emph{one-hot} vector where only a single component has the value 1 and all others are zero, . For example, to say that some input would belong to class number 4 of 10 possible classes, the perfect resulting value for \(\mathbf{y}\) would be
+may be interpreted as a classification function, if that resulting vector is somewhat close to a so-called *one-hot* vector where only a single component has the value 1 and all others are zero. For example, to say that some input would belong to class number 4 of 10 possible classes, the perfect resulting value for \\(\mathbf{y}\\) would be
 
 \begin{equation}
 \mathbf{y} = (0,0,0,1,0,0,0,0,0,0)
@@ -90,94 +83,92 @@ In reality you'll rather find values similar to
 \mathbf{y} = (0.08, 0.10, 0.03, 0.86, 0.03, 0.04, 0.00, 0.04, 0.07, 0.09)
 \end{equation}
 
-We will interpret the above and similar results as \emph{most probably class 4}. Now, with this interpretation, our problem can be rephrased to: "Find the particular function \(f(\mathbf{x})\) that always returns the \emph{one-hot} vector that corresponds to the digit represented by the given image."
+We will interpret the above and similar results as *most probably class 4*. Now, with this interpretation, our problem of recognizing hand-written digits can be rephrased to: "Find the particular function \\(f(\mathbf{x})\\) that always returns the *one-hot* vector that corresponds to the digit represented by the given image."
 
-The image itself, of course, will have to be represented by a vector too. In case of the MNIST data set, it's a vector of \(28 \times 28 = 784\) byte. In this post, I will not exploit the geometrical structure of the image, so we just align all the rows of 28 bytes each to a single vector of 784 bytes. Michael Nielson explains pros and cons of that approach in his text better than I could ever do.
+The image itself, of course, will have to be represented by a vector, too. In case of the MNIST data set, it's a vector of \\(28 \times 28 = 784\\) bytes. In this post, I will not exploit the geometrical structure of the image, so we just align all the rows of 28 bytes each to a single vector of 784 bytes. Michael Nielson explains pros and cons of that approach in his text better than I could ever do.
 
-So the problem now has a precise mathematical form: Find the function \(f(x): R^m \rightarrow R^n\) that maps any given vector \(\mathbf{x} \in R^{784}\) representing a particular image to an output vector \(\mathbf{y} \in R^{10}\) that can be interpreted as a classification to the digit that is represented by that image.
+So the problem now has an even more precise mathematical form: Find the function \\(f(x): R^{784} \rightarrow R^{10}\\) that maps any given vector \\(\mathbf{x} \in R^{784}\\) representing a particular image to an output vector \\(\mathbf{y} \in R^{10}\\) that can be interpreted as a classification to the digit that is represented by that image. In case you're wondering. I'm intentionally repeating myself here...;-)
 
-----
-
-Since exploring an unlimited number of possible functions is a daunting task, we follow a well-known problem solving strategy and start by reducing the search space. The very early candidates for neural networks were constructed as affine functions with some non-linear component-wise so-called activation function (Rosenblatt, Mcculoch, Pitts). That's still one of the most popular ingredients of neural networks, so let's stick to those and use
+<br/>
+Since exploring an unlimited number of possible functions is a daunting task, we follow a well-known problem solving strategy and start by reducing the search space. The very early candidates for neural networks were constructed as affine functions with some non-linear component-wise so-called *activation function*. That is still one of the most popular ingredients of neural networks, so let's stick to those and use
 
 \begin{equation}
 \mathbf{f}(\mathbf{x})=\Phi(\mathbf{W} \cdot \mathbf{x} + \mathbf{b})
 \end{equation}
 
-where \(\mathbf{W}\) is an \(n \times m\) \emph{weight matrix}, \(\mathbf{b} \in R^m\)  is a vector called \emph{bias} and finally, \( \Phi( \mathbf{x})  \) is a function that is defined as the component-wise application of a scalar, non-linear \emph{activation function} \(\phi(x)\).
+where \\(\mathbf{W}\\) is an \\(n \times m\\) *weight matrix*, \\(\mathbf{b} \in R^m\\)  is a vector called *bias* and finally, \\( \Phi( \mathbf{x})  \\) is a function that is defined as the component-wise application of a scalar, non-linear *activation function* \\(\phi(x)\\).
 
 \begin{equation}
 \Phi(z_1, z_2, \cdots, z_{n-1}, z_n) =
 \left(
-\begin{array}{l}
-\phi(z_1) \\
-\phi(z_2) \\
-\cdots \\
-\phi(z_{n-1}) \\
-\phi(z_n) \\
-\end{array}
+\\begin{array}{l}
+\phi(z_1) \\\
+\phi(z_2) \\\
+\cdots \\\
+\phi(z_{n-1}) \\\
+\phi(z_n) \\\
+\\end{array}
 \right)
 \end{equation}
 
 
-We will eventually use the \emph{sigmoid} function, which is one of the steady and (almost everywhere) differentiable functions described in the relevant literature. But for this text, it's actually irrelevant.
+We will eventually use the *sigmoid* function, which is one of the steady and (almost everywhere) differentiable functions described in the relevant literature. But for this text, it's actually irrelevant.
 
-Please note that I have clandestinely introduced a typical convention here: Variables in bold-face represent vectors (lower case) and matrices (upper-case). Regular type variables represent scalars, such as the components shown above. One more bit of lingo here: In the proceding, we'll call that function \( f( \mathbf{x})  \) our \emph{neural network model}, or simply \emph{the model}. The parameters of \( f( \mathbf{x})\), once tuned, somehow embody an \emph{understanding} of the meaning of hand-written digits, that's why you can say they represent a model of those digits.
+Please note that I have clandestinely introduced a typical convention here: Variables in bold-face represent vectors (lower case) and matrices (upper-case). Regular type variables represent scalars, such as the components shown above. One more bit of lingo here: In the proceding, we'll call that function \\( f( \mathbf{x})  \\) our *neural network model*, or simply *the model*. The parameters of \\( f( \mathbf{x})\\), once tuned, somehow embody an *understanding* of the meaning of hand-written digits, that's why you can say they represent a model of those digits.
 
-----
+<br/>
+Let's wrap up: It looks like if we find all the parameters of a \\(784 \times 10 \\) matrix and a 10-dimensional bias, we could try and see whether we solve the problem with those. Good! Then, how can we determine those 7840 + 10 parameters? It turns out that this is not so difficult. If we had a so-called *loss function* that for all images provides us with a scalar measure of how far we are from the perfect solution, we could use that function to go with the following procedure or algorithm:
 
-Let's wrap up: It looks like if we find all the parameters of a \(784 \times 10 \) matrix and a 10-dimensional bias, we could try and see whether we solve the problem with those. Good! Then, how can we determine those 7840 + 10 parameters? It turns out that this is not so difficult. If we had a so-called \emph{loss function} that for all images provides us with a scalar measure of how far we are from the perfect solution, we could use that function to go with the following procedure or algorithm:
+- For all images, calculate the current value of the given loss function
+- Tweek one single parameter at a time
+- If the loss function decreases, continue with the next parameter
+- If the loss function increases, tweek back and a little bit more in the other direction and continue
+- Continue through all weights and biases multiple times, until the loss function doesn't improve any more
 
-\begin{itemize}
-\item for all images, calculate the current value of the given loss function
-\item tweek one single parameter at a time
-\item If the loss function decreases, continue with the next parameter
-\item If the loss function increases, tweek back and a little bit more in the other direction and continue
-\item continue through all weights and biases multiple times, until the loss function doesn't improve any more
-\end{itemize}
 
 Saying the same in more technical terms (here, exemplary only for the weights):
 
-\begin{equation} \label{algo}
-\begin{array}{l l l}
-\forall \mathbf{x} \in R^m, \bar{\mathbf{y}} \in R^n: \\
-\textrm{Let } \mathbf{W}_i \textrm{ be the i-th iteration of all weights} \\
-\textrm{Let } c_i = \mathcal{D}(\mathbf{W_i}, \mathbf{b},  \mathbf{x}, \bar{\mathbf{y}}) \textrm{ be the current cost}\\
-\textrm{Let } c_i^{(+)} = \mathcal{D}(\mathbf{W_i}+\Delta\mathbf{W}, \mathbf{b},  \mathbf{x}, \bar{\mathbf{y}}) \\
-\textrm{Let } c_i^{(-)} = \mathcal{D}(\mathbf{W_i}-\Delta\mathbf{W}, \mathbf{b},  \mathbf{x}, \bar{\mathbf{y}}) \\
-\textrm{if} c_i^{(+)} < c_i^{(-)} \textrm{then} \mathbf{W_{i+1}}=\mathbf{W_i}+\Delta\mathbf{W} \\
-\textrm{if} c_i^{(+)} > c_i^{(-)} \textrm{then} \mathbf{W_{i+1}}=\mathbf{W_i}-\Delta\mathbf{W}
-\end{array}
+\begin{equation}\label{algo}
+\\begin{array}{l l l}
+\forall \mathbf{x} \in R^m, \bar{\mathbf{y}} \in R^n: \\\
+\textrm{Let } \mathbf{W}_i \textrm{ be the current i-th iteration of all weights} \\\
+\textrm{Let } \mathbf{W}_k \textrm{ be the next iteration of all weights} \\\
+\textrm{Let } c_i = \mathcal{D}(\mathbf{W_i}, \mathbf{b},  \mathbf{x}, \bar{\mathbf{y}}) \textrm{ be the current cost}\\\
+\textrm{Let } c_i^{(+)} = \mathcal{D}(\mathbf{W_i}+\Delta\mathbf{W}, \mathbf{b},  \mathbf{x}, \bar{\mathbf{y}}) \\\
+\textrm{Let } c_i^{(-)} = \mathcal{D}(\mathbf{W_i}-\Delta\mathbf{W}, \mathbf{b},  \mathbf{x}, \bar{\mathbf{y}}) \\\
+\textrm{if} c_i^{(+)} \lt c_i^{(-)} \textrm{ then } \mathbf{W_k}=\mathbf{W_i}+\Delta\mathbf{W} \\\
+\textrm{if} c_i^{(+)} \gt c_i^{(-)} \textrm{ then } \mathbf{W_k}=\mathbf{W_i}-\Delta\mathbf{W}
+\\end{array}
 \end{equation}
 
-To establish such a loss function, we need to know the correct classification in advance. Because then the loss function could simply compare the correct classification to the result of applying the model to all the images.
 
-Not surprisingly, it turns out that the Euclidean distance (or better, it's square) is a pretty good candidate. The particular distance we're talking about is the sum of all the distances between the respective known true classification \(\mathbf{\bar{y}} \) of an image and what our model function produces when applied to the respective image. In math terms the loss function \(\mathcal{D}\) as a function of the weights and the bias looks like
+Finding such a loss function is easy, since we know the correct classification of the training images in advance. The loss function will simply compute some kind of *distance* between what the network yields and those correct classifications.
+
+Not surprisingly, it turns out that the Euclidean distance (or its square) is a pretty good candidate. The particular distance we're talking about is the sum of all the distances between the respective known true classification \\(\mathbf{\bar{y}} \\) of an image and what our model function produces when applied to the respective image. In math terms the loss function \\(\mathcal{D}\\) as a function of the weights and the bias looks like
 
 \begin{equation} \label{eq:60}
 \mathcal{D}( \mathbf{W}, \mathbf{b}) = \frac{1}{2} \cdot \sum_{i=1}^{N}
 (\Phi(\mathbf{W} \cdot \mathbf{x}_i + \mathbf{b}) - \mathbf{\bar{y}}_i)^2
 \end{equation}
 
-Here, the factor of \(\frac{1}{2} \) is mere convenience as you'll see soon, and N is the total number of images with known classifications \(\mathbf{\bar{y}} \), the latter we will mostly refer to as \emph{labels} from now on. Note, that the squaring denotes the inner product of a vector with itself, resulting in the sum of the squares of the components:
+Here, the factor of \\(\frac{1}{2} \\) is mere convenience as you'll see soon, and N is the total number of images with known classifications \\(\mathbf{\bar{y}} \\), the latter we will mostly refer to as *labels* from now on. Note, that the squaring denotes the inner product of a vector with itself, resulting in the sum of the squares of the components:
 
 \begin{equation}
 	\mathbf{x}^2 = \sum_{i=1}^{10}x_i^2
 \end{equation}
 
-with \(10\) being the dimension of the classification vector space. By the way, finding a model this way, based on the knowledge of a large number of true result, is called \emph{supervised} learning. So this is what our model is going to undergo now: Supervised learning by optimizing the given function with respect to our chosen euclidean cost function. Of course, the euclidean ist just one possible functions Any function with the aforementioned characteristic - namely being scalar and indicative to the quality of the output - can do, and indeed other functions have been found more efficient with certain models. We stick to the euclidean simply because it is the simplest.
+with \\(10\\) being the dimension of the classification vector space. By the way, finding a model this way, based on the knowledge of a large number of true result, is called *supervised* learning. So this is what our model is going to undergo now: Supervised learning by optimizing the given function with respect to our chosen euclidean cost function. Of course, the euclidean ist just one of many possible functions. Any function with the aforementioned characteristic - namely being scalar and indicative to the quality of the output - can do, and indeed other functions have been found more efficient with certain models. However, we'll stick to the euclidean simply because it is the simplest.
 
-----
+<br/>
 
-\chapter{A Gradient to Descend }
+### A Gradient to Descend
 
-Time for some more math! The algorithm for tweeking and tuning the parameters [\ref{algo}] that we sketched in the previous chapter turns out to be very inefficient. The problem with tweeking single parameters is that you can only do it one single parameter at a time thus requiring a lot of iterations. That may still work somehow for our simple model - though probably painfully slow - but later on our journey that'll just not get us anywhere anymore. And this is where calculus comes to the rescue. Calculus is about calculating what would happen if we tuned some parameter this or that way. Since we're not actually tweeking parameters during the computations of calculus we can compute the expected change of the distance function for all parameters in a single go. The result of this calculation is itself a matrix or vector - one component for each parameter - telling us how much the cost will change when we change that parameter a tiny little, more precisely an infinitesimally small bit. This resulting matrix or vector is called the \emph{gradient} of the cost function. The gradient can geometrically be interpreted as a vector that points into the direction of steepest ascent. Thus adding a fraction of the gradient to our parameters would increase the cost function. We'll do the opposite, obviously - and subtract a fraction of the gradient to find the next, slightly better parameter set, i.e. yielding a lower value for the distance or cost. Doing that for a number of times until the distance function doesn't improve anymore will yield the desired result: A function that computes (more or less) exactly the results that we expect. A function that has learned to recognize images! However, exactly how good the function will be depends on a number of aspects that we will explore later in this text. For now, let's find the best we can get with a single matrix of weights and a vector of biases.
+Time for some more math! The algorithm for tweeking and tuning the parameters [\ref{algo}] that we sketched in the previous chapter turns out to be very inefficient. The problem with tweeking single parameters is that you can only do it one single parameter at a time thus requiring a lot of iterations. That may still work somehow for our simple model - though probably painfully slow - but later on our journey that will just not get us anywhere anymore. And this is where calculus comes to the rescue. Calculus is about calculating what would happen if we tuned some parameter this or that way. Since we're not actually tweeking parameters during the computations of calculus we can compute the expected change of the distance function for all parameters in a single go. The result of this calculation is itself a matrix or vector - one component for each parameter - telling us how much the cost will change when we change that parameter a tiny little, more precisely an infinitesimally small bit. This resulting matrix or vector is called the *gradient* of the cost function. The gradient can geometrically be interpreted as a vector that points into the direction of steepest ascent. Thus adding a fraction of the gradient to our parameters would increase the cost function. We'll do the opposite, obviously - and subtract a fraction of the gradient to find the next, slightly better parameter set, i.e. yielding a lower value for the distance or cost. Doing that for a number of times until the distance function doesn't improve anymore will yield the desired result: A function that computes (more or less) exactly the results that we expect. A function that has learned to recognize images! However, exactly how good the function will be depends on a number of aspects that we will explore later in this text. For now, let's find the best we can get with a single matrix of weights and a vector of biases.
 
-\bigskip
-
+<br/>
 Let's wrap up: We're setting out to find the gradient of the cost function because that will show us how - given an arbitrary set of parameters - we can find a slightly better set, a set that produces a classification closer to the ideal, true classification. Ok? We're on a purposeful mission.
 
-In the following, we denote the gradient with respect to the weights and the bias by \( \nabla_{\mathbf{W}} \) or \( \nabla_{\mathbf{b}}\) respectively. The triangle operator is called \emph{nabla}. With \(w_{ij}\) being the parameter of \(\mathbf{W} \) at row \(i\) and column \(j\) and \(b_k\) being the k-th component of the bias vector, the gradient with respect to each parameter is defined by the following \emph{partial derivate} expressions
+In the following, we denote the gradient with respect to the weights and the bias by \\( \nabla_{\mathbf{W}} \\) or \\( \nabla_{\mathbf{b}}\\) respectively. The triangle operator is called *nabla*. With \\(w_{ij}\\) being the parameter of \\(\mathbf{W} \\) at row \\(i\\) and column \\(j\\) and \\(b_k\\) being the k-th component of the bias vector, the gradient with respect to each parameter is defined by the following *partial derivative* expressions
 
 \begin{equation}\label{eq:80}
 	\nabla_{\mathbf{W}} \mathcal{D}( \mathbf{W}, \mathbf{b})= \frac{\partial}{\partial w_{ij}}  \mathcal{D}( \mathbf{W}, \mathbf{b})
@@ -193,12 +184,11 @@ To actually perform the calculation, we need to re-write the distance function i
 \mathcal{D}(w_{11},\cdots, b_1, \cdots) = \frac{1}{2} \sum_{k=1}^N \sum_{m=1}^{10} ( \phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m) - \bar{y}_m^{(k)})^2
 \end{equation}
 
-where \(x^{(k)}_n \) denotes the n-th component of the vector representing the k-th image and \(\bar{y}_m^{(k)}\) - in the same fashion - stands for the m-th component of the k-th label vector.
+where \\(x^{(k)}_n \\) denotes the n-th component of the vector representing the k-th image and \\(\bar{y}_m^{(k)}\\) - in the same fashion - stands for the m-th component of the k-th label vector.
 This looks much more difficult than it actually is. When we finally get at the implementation in Scala, we'll make use of the more convenient vector algebra representation. We'll use a particular library called ND4J to do the majority of all index juggling for us. So, you'll see much fewer indices then. However, we do need this component-wise representation now to correctly calculate the derivatives defined in \ref{eq:80} and \ref{eq:81}. Once we have the result, we'll rephrase it back to the simpler vector notation and use only the latter in code. This is not only for our convenience or to end up with more readable and maintainable code. It also allows for much more efficient algorithms to do the actual matrix multiplications behind the scene. Exactly  that's what ND4J is going to do for us. So please keep in mind that what we're going to go through now will eventually ease our lives significantly.
 
-\bigskip
-
-One last thing: Before we start the big number crunching here, let me introduce a little technique that we physicists used to make our lives easier. It involves the delta symbol \(\delta_{ij}\) that we define as being 1 for \(i=j \) and 0 otherwise. It allows for the following nice tricks:
+<br/>
+One last thing: Before we start the big number crunching here, let me introduce a little technique that we physicists used to make our lives easier. It involves the delta symbol \\(\delta_{ij}\\) that we define as being 1 for \\(i=j \\) and 0 otherwise. It allows for the following nice tricks:
 
 \begin{equation}\label{eq:110}
 \frac{\partial b_i}{\partial b_j} = \delta_{ij}
@@ -210,7 +200,7 @@ and similarly, obviously
 \frac{\partial w_{ij}}{\partial w_{km}} = \delta_{ik} \cdot \delta_{jm}
 \end{equation}
 
-and the best thing is: it collapses sums, because all the terms containing a factor \(\delta_{ij}\) simply disapper for all \(  i \neq j\). Watch how this allows us to calculate derivatives of matrix products
+and the best thing is: it collapses sums, because all the terms containing a factor \\(\delta_{ij}\\) simply disapper for all \\(  i \neq j\\). Watch how this allows us to calculate derivatives of matrix products
 
 \begin{equation}\label{eq:130}
 \frac{\partial}{\partial x_k} \sum_j w_{ij} \cdot x_j = \sum_j w_{ij} \cdot \frac{\partial x_j}{\partial x_k}
@@ -219,47 +209,49 @@ and the best thing is: it collapses sums, because all the terms containing a fac
 
 Cool, isn't it?
 
-\bigskip
-
-
-Now back to the original problem. We'll apply the chain rule twice, dropping constant terms on the fly, and eventually use the \(\delta \)-function.
+<br/>
+Now back to the original problem. We'll apply the chain rule twice, dropping constant terms on the fly, and eventually use the \\(\delta \\)-function.
 
 \begin{equation}\label{eq:140}
-	\frac{\partial}{\partial w_{ij}}   \frac{1}{2} \sum_{k=1}^N \sum_{m=1}^{10} ( \phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m) - \bar{y}_m^{(k)})^2 =
+\frac{\partial}{\partial w_{ij}}   \frac{1}{2} \sum_{k=1}^N \sum_{m=1}^{10} ( \phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m) - \bar{y}_m^{(k)})^2 =
 \end{equation}
 
 
-
 \begin{equation}\label{eq:150}
- \sum_{k=1}^N \sum_{m=1}^{10}
+\sum_{k=1}^N \sum_{m=1}^{10}
 (\phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m) - \bar{y}_m^{(k)})
 \cdot
+\end{equation}
+
+\begin{equation}\label{eq:155}
 \frac{\partial}{\partial w_{ij}}
 (\phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m) - \bar{y}_m^{(k)})
 \end{equation}
 
-To achieve the above result, we applied the chain rule \((f^2)' = 2 \cdot f \cdot f' \). And now using \( y^{(k)}_m\) instead of our original model function, namely
+To achieve the above result, we applied the chain rule \\((f^2)' = 2 \cdot f \cdot f' \\). And now using \\( y_m^{(k)}\\) instead of our original model function, namely
 \begin{equation}
-y^{(k)}_m = \phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m)
+y_m^{(k)} = \phi(\sum_{n=1}^{784} w_{mn} x_n^{(k)} + b_m)
 \end{equation}
 
-and using the chain rule for arbitrary functions \( f(g)' = f'(g) \cdot g' \)
+and using the chain rule for arbitrary nested functions \\( f(g)' = f'(g) \cdot g' \\)
 
 \begin{equation}\label{eq:170}
 = \sum_{k=1}^N \sum_{m=1}^{10}
 (y_m^{(k)} - \bar{y}_m^{(k)})
 \cdot
 \phi^{\prime}(y_m^{(k)}) \cdot
-\frac{\partial}{\partial w_{ij}}\sum_{n=1}^{784} w_{mn} x^{(k)}_n
+\frac{\partial}{\partial w_i\tiny{j}} \sum_n x_n^{(k)} \cdot w\Tiny{mn}
 \end{equation}
 
 \begin{equation}
 =\sum_k \sum_m \sum_n
 (y_m^{(k)} - \bar{y}_m^{(k)})
 \cdot
-\phi^{\prime}(y_m^{(k)}) \cdot
-\delta_{im} \cdot \delta_{jn} \cdot x^{(k)}_n
+\phi^{\prime}(y_m^{(k)})
+\cdot x_n^{(k)} \delta\small{im }
+\cdot \delta_j\Tiny{n} 
 \end{equation}
+
 
 \begin{equation}
 = \sum_k
@@ -269,8 +261,8 @@ and using the chain rule for arbitrary functions \( f(g)' = f'(g) \cdot g' \)
 x^{(k)}_j
 \end{equation}
 
-Since all our vectors are meant to be column vectors, the inner product is expressed by the 'dot' product with a transposed vector to the left like in \(c = \mathbf{a}^T \cdot \mathbf{b} \) - the result being a scalar, and the outer product is expressed by the 'dot' product with a transposed to the right like in \(\mathbf{M} = \mathbf{a} \cdot \mathbf{b}^T \), the result being a matrix this time.
-So now, with also the additional help of the Hadamard product symbol \(\odot \)  denoting component-wise multiplication, and the \(\nabla\) symbol for the gradient, we can confidently return to vector notation
+Since all our vectors are meant to be column vectors, the inner product is expressed by the 'dot' product with a transposed vector to the left like in \\(c = \mathbf{a}^T \cdot \mathbf{b} \\) - the result being a scalar, and the outer product is expressed by the 'dot' product with a transposed to the right like in \\(\mathbf{M} = \mathbf{a} \cdot \mathbf{b}^T \\), the result being a matrix this time.
+So now, with also the additional help of the Hadamard product symbol \\(\odot \\)  denoting component-wise multiplication, and the \\(\nabla\\) symbol for the gradient, we can confidently return to vector notation
 
 \begin{equation} \label{eq:180}
 \nabla_{\mathbf{W}} \mathcal{D}(\mathbf{W}, \mathbf{b})=
@@ -280,17 +272,18 @@ So now, with also the additional help of the Hadamard product symbol \(\odot \) 
 
 Look at this beautiful result: We can see that the gradient constitutes of three independent components, that simply need to be multiplied the correct way. Of course, this is exactly what the chain rule says, but without going through the effort of component-wise calculation, we probably wouldn't have confidently found that correct way of multiplying these components.
 
-Here, \( \mathbf{y}_k - \bar{\mathbf{y}}_k\) stems from the distance function, \( \mathbf{\Phi^{\prime}}(\mathbf{y}_k)\) from the activation function and \(\mathbf{x}_k\) from the matrix multiplication. Looking ahead I can tell you that the vector notation will also come in handy when we attempt to understand backpropagation, a very important concept of deep learning, later in this blog.
+Here, \\( \mathbf{y}_k - \bar{\mathbf{y}}_k\\) stems from the distance function, \\( \mathbf{\Phi^{\prime}}(\mathbf{y}_k)\\) from the activation function and \\(\mathbf{x}_k\\) from the matrix multiplication. Looking ahead I can tell you that the vector notation will also come in handy when we attempt to understand backpropagation, a very important concept of deep learning, later in this blog.
 
 One last thing to do is to calculate the gradient with respect to the bias, for which we simply start by looking at \ref{eq:170} and replace the partial differentiation with the one for the bias:
 
+
 \begin{equation}\label{eq:210}
 \frac{\partial}{\partial b_{i}}\mathcal{D}(\mathbf{W}, \mathbf{b})
-= \sum_{k=1}^N \sum_{m=1}^{10}
+= \sum_k \sum_m
 (y_m^{(k)} - \bar{y}_m^{(k)})
 \cdot
 \phi^{\prime}(y_m^{(k)}) \cdot
-\frac{\partial}{\partial b_{i}}(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m)
+\frac{\partial}{\partial b_i} ( b_m + \sum_n x_n^{(k)} \cdot w\Tiny{mn} )
 \end{equation}
 
 which again simplifies greatly by virtue of equations \ref{eq:110} and \ref{eq:130}:
@@ -322,8 +315,7 @@ in summary yielding in concise vector notation (repeating \ref{eq:180}):
 
 Since you're reading this very sentence right now, you have made it through quite some amount of number crunching. Congratulations! I think you now deserve a truly satisfactory experience and I have one for you: I'll show you the Scala code that implements our results. In the below code snippet, * is the operator notation for the Hadamard component-wise multiplication, and ** is used for matrix multiplication and outer product.
 
-\begin{lstlisting}[label=vectors_in_scala,caption=Transfering vector notation into code]
-
+```java
 def nabla_b (x: T, y_bar: T, W: T, b: T ) = {
 	val y = Phi(W ** x + b)
 	(y - y_bar) * Phi_prime(W ** x + b)
@@ -333,14 +325,14 @@ def nabla_W (x: T, y_bar: T, W: T, b: T ) = {
 	((y - y_bar) * Phi_prime(W ** x + b)) ** x.T
 }
 
-\end{lstlisting}
+```
 
 Isn't that amazing? Our mathematical results are precisely reflected in the code. We managed to delegate a lot of complex index juggling to a high-performance library and what's left is highly readable, easily comprehensible, downright beautiful code. That's why I love this job of mine!
-But now that we have warmed up to the basic math toolkit, I'd rather stay on the subject and address a mighty concept that'll help us go deeper. Be reminded: you should never go deeper before you know how to propagate back...;-)
+But now that we have warmed up to the basic math toolkit, we'd rather not start coding yet but stay on the subject and address a mighty concept that will help us go deeper. Always remember: you should never go deeper unless you know how to propagate back...;-)
 
 
 
 
 
 
-##### [Chapter II: Neural Networks are just functions]({% post_url 2017-04-12-yainn2 %})
+##### [Part II: Deep Learning and Backpropagation]({% post_url 2017-04-12-yainn2 %})
