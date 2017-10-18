@@ -63,9 +63,111 @@ The math I present here may look difficult at times. Believe me, it's not. Not a
 
 ----------------
 
-disclaimer: This post is not about...
+ ## A Function to Optimize
+ 
+
+Neural networks can solve - amongst others - a particular category of problems, now mostly referred to as \emph{classification} problems. A classification can be seen as just one special interpretation of a mathematical function. An arbitrary function \(f(x): R^m \rightarrow R^n\) that maps an input vector \(\mathbf{x} \in R^m\) to an output vector \(\mathbf{y} \in R^n\):
+
+\begin{equation}
+	\mathbf{y}=f(\mathbf{x})
+\end{equation}
+
+may be interpreted as a classification function, if that resulting vector is somewhat close to a so-called \emph{one-hot} vector where only a single component has the value 1 and all others are zero, . For example, to say that some input would belong to class number 4 of 10 possible classes, the perfect resulting value for \(\mathbf{y}\) would be
+
+\begin{equation}
+\mathbf{y} = (0,0,0,1,0,0,0,0,0,0)
+\end{equation}
+
+In reality you'll rather find values similar to
+
+\begin{equation}
+\mathbf{y} = (0.08, 0.10, 0.03, 0.86, 0.03, 0.04, 0.00, 0.04, 0.07, 0.09)
+\end{equation}
+
+We will interpret the above and similar results as \emph{most probably class 4}. Now, with this interpretation, our problem can be rephrased to: "Find the particular function \(f(\mathbf{x})\) that always returns the \emph{one-hot} vector that corresponds to the digit represented by the given image."
+
+The image itself, of course, will have to be represented by a vector too. In case of the MNIST data set, it's a vector of \(28 \times 28 = 784\) byte. In this post, I will not exploit the geometrical structure of the image, so we just align all the rows of 28 bytes each to a single vector of 784 bytes. Michael Nielson explains pros and cons of that approach in his text better than I could ever do.
+
+So the problem now has a precise mathematical form: Find the function \(f(x): R^m \rightarrow R^n\) that maps any given vector \(\mathbf{x} \in R^{784}\) representing a particular image to an output vector \(\mathbf{y} \in R^{10}\) that can be interpreted as a classification to the digit that is represented by that image.
+
+\bigskip
+
+Since exploring an unlimited number of possible functions is a daunting task, we follow a well-known problem solving strategy and start by reducing the search space. The very early candidates for neural networks were constructed as affine functions with some non-linear component-wise so-called activation function (Rosenblatt, Mcculoch, Pitts). That's still one of the most popular ingredients of neural networks, so let's stick to those and use
+
+\begin{equation}
+\mathbf{f}(\mathbf{x})=\Phi(\mathbf{W} \cdot \mathbf{x} + \mathbf{b})
+\end{equation}
+
+where \(\mathbf{W}\) is an \(n \times m\) \emph{weight matrix}, \(\mathbf{b} \in R^m\)  is a vector called \emph{bias} and finally, \( \Phi( \mathbf{x})  \) is a function that is defined as the component-wise application of a scalar, non-linear \emph{activation function} \(\phi(x)\).
+
+\begin{equation}
+\Phi(z_1, z_2, \cdots, z_{n-1}, z_n) =
+\left(
+\begin{array}{l}
+\phi(z_1) \\
+\phi(z_2) \\
+\cdots \\
+\phi(z_{n-1}) \\
+\phi(z_n) \\
+\end{array}
+\right)
+\end{equation}
+
+
+We will eventually use the \emph{sigmoid} function, which is one of the steady and (almost everywhere) differentiable functions described in the relevant literature. But for this text, it's actually irrelevant.
+
+Please note that I have clandestinely introduced a typical convention here: Variables in bold-face represent vectors (lower case) and matrices (upper-case). Regular type variables represent scalars, such as the components shown above. One more bit of lingo here: In the proceding, we'll call that function \( f( \mathbf{x})  \) our \emph{neural network model}, or simply \emph{the model}. The parameters of \( f( \mathbf{x})\), once tuned, somehow embody an \emph{understanding} of the meaning of hand-written digits, that's why you can say they represent a model of those digits.
+
+\bigskip
+
+Let's wrap up: It looks like if we find all the parameters of a \(784 \times 10 \) matrix and a 10-dimensional bias, we could try and see whether we solve the problem with those. Good! Then, how can we determine those 7840 + 10 parameters? It turns out that this is not so difficult. If we had a so-called \emph{loss function} that for all images provides us with a scalar measure of how far we are from the perfect solution, we could use that function to go with the following procedure or algorithm:
+
+\begin{itemize}
+\item for all images, calculate the current value of the given loss function
+\item tweek one single parameter at a time
+\item If the loss function decreases, continue with the next parameter
+\item If the loss function increases, tweek back and a little bit more in the other direction and continue
+\item continue through all weights and biases multiple times, until the loss function doesn't improve any more
+\end{itemize}
+
+Saying the same in more technical terms (here, exemplary only for the weights):
+
+\begin{equation} \label{algo}
+\begin{array}{l l l}
+\forall \mathbf{x} \in R^m, \bar{\mathbf{y}} \in R^n: \\
+\textrm{Let } \mathbf{W}_i \textrm{ be the i-th iteration of all weights} \\
+\textrm{Let } c_i = \mathcal{D}(\mathbf{W_i}, \mathbf{b},  \mathbf{x}, \bar{\mathbf{y}}) \textrm{ be the current cost}\\
+\textrm{Let } c_i^{(+)} = \mathcal{D}(\mathbf{W_i}+\Delta\mathbf{W}, \mathbf{b},  \mathbf{x}, \bar{\mathbf{y}}) \\
+\textrm{Let } c_i^{(-)} = \mathcal{D}(\mathbf{W_i}-\Delta\mathbf{W}, \mathbf{b},  \mathbf{x}, \bar{\mathbf{y}}) \\
+\textrm{if} c_i^{(+)} < c_i^{(-)} \textrm{then} \mathbf{W_{i+1}}=\mathbf{W_i}+\Delta\mathbf{W} \\
+\textrm{if} c_i^{(+)} > c_i^{(-)} \textrm{then} \mathbf{W_{i+1}}=\mathbf{W_i}-\Delta\mathbf{W}
+\end{array}
+\end{equation}
+
+To establish such a loss function, we need to know the correct classification in advance. Because then the loss function could simply compare the correct classification to the result of applying the model to all the images.
+
+Not surprisingly, it turns out that the Euclidean distance (or better, it's square) is a pretty good candidate. The particular distance we're talking about is the sum of all the distances between the respective known true classification \(\mathbf{\bar{y}} \) of an image and what our model function produces when applied to the respective image. In math terms the loss function \(\mathcal{D}\) as a function of the weights and the bias looks like
+
+\begin{equation} \label{eq:60}
+\mathcal{D}( \mathbf{W}, \mathbf{b}) = \frac{1}{2} \cdot \sum_{i=1}^{N}
+(\Phi(\mathbf{W} \cdot \mathbf{x}_i + \mathbf{b}) - \mathbf{\bar{y}}_i)^2
+\end{equation}
+
+Here, the factor of \(\frac{1}{2} \) is mere convenience as you'll see soon, and N is the total number of images with known classifications \(\mathbf{\bar{y}} \), the latter we will mostly refer to as \emph{labels} from now on. Note, that the squaring denotes the inner product of a vector with itself, resulting in the sum of the squares of the components:
+
+\begin{equation}
+	\mathbf{x}^2 = \sum_{i=1}^{10}x_i^2
+\end{equation}
+
+with \(10\) being the dimesion of the classification vectors. By the way, finding a model this way, based on the knowledge of a large number of true result, is called \emph{supervised} learning. So this is what our model is going to undergo now: Supervised learning by optimizing the given function with respect to our chosen euclidean cost function. Of course, the euclidean ist just one possible functions Any function with the aforementioned characteristic - namely being scalar and indicative to the quality of the output - can do, and indeed other functions have been found more efficient with certain models. We stick to the euclidean simply because it is the simplest.
+
+\bigskip
+
 
 Well, then let's get started.
  
+
+
+
 
 ##### [Chapter II: Neural Networks are just functions]({% post_url 2017-04-12-yainn2 %})
