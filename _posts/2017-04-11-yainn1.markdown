@@ -10,15 +10,18 @@ permalink: yainn1
 
 -------
 
+<br/>
 *When software engineering meets machine learning*
 
+<br/>
 
 A lot of introductory material has been written and is still being written about neural networks these days, and some of the available material has reached an unbelievably high quality in both depth and accessibility, which is a rare combination. First and foremost, I must mention [Michael Nielson's online book](http://neuralnetworksanddeeplearning.com/) \cite{nielson2015}
 and [Chris Olah's blog](http://colah.github.io/) \cite{olah2015}, full of really beautiful reasoning, and Ian Goodfellow's popular text book ["Deep Learning"] (http://www.deeplearningbook.org/) \cite{goodfellow}. 
-So, as an analogy to the well-known saying "I'm standing on the shoulders of giants", I can only conclude that I am "wandering between the toes of giants". Hence, I will often-times refer the reader to one of these giants. 
- 
- 
+So, as an analogy to the well-known saying "I'm standing on the shoulders of giants", I can only conclude that I am "wandering between the toes of giants". Hence, I will often-times refer the reader to one of these giants.
+
+<br/>
 So, why yet another introductory text?
+<br/>
 
 
 As I was curiously wandering through the internet on my quest to understand machine learning, I found a lot of beautiful math, beautiful concepts and thorough, even more beautiful reasoning (I know I mentioned that already), but in the end there was always a grain of salt. The provided code examples somehow never truly appealed to me. That may be in parts because of personal gusto - admittedly. But it's definitely not only because of the used language. Python is pretty much ok, I'm getting used to it. 
