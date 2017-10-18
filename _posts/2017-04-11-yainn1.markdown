@@ -61,9 +61,12 @@ Before I dive into the math and scare you off for the rest of time: Like program
 
 The math I present here may look difficult at times. Believe me, it's not. Not at all. The point is: Most of us are just not used to it (anymore). Math is simply unmisunderstandably precise - and extremely concise. Things wouldn't work otherwise. And look: the things I present here are not even close to *rocket science*. It's applied undergraduate level math at best. The key to understanding this post - and in general to getting somewhere in the more scientific part of software engineering is often not intelligence - but rather dedication, perserverance and a hell lot of concentration on the subject. Ready for it?
 
+Well, then let's get started.
+ 
+
 ----------------
 
- ## A Function to Optimize
+# A Function to Optimize
  
 
 Neural networks can solve - amongst others - a particular category of problems, now mostly referred to as \emph{classification} problems. A classification can be seen as just one special interpretation of a mathematical function. An arbitrary function \(f(x): R^m \rightarrow R^n\) that maps an input vector \(\mathbf{x} \in R^m\) to an output vector \(\mathbf{y} \in R^n\):
@@ -90,7 +93,7 @@ The image itself, of course, will have to be represented by a vector too. In cas
 
 So the problem now has a precise mathematical form: Find the function \(f(x): R^m \rightarrow R^n\) that maps any given vector \(\mathbf{x} \in R^{784}\) representing a particular image to an output vector \(\mathbf{y} \in R^{10}\) that can be interpreted as a classification to the digit that is represented by that image.
 
-\bigskip
+----
 
 Since exploring an unlimited number of possible functions is a daunting task, we follow a well-known problem solving strategy and start by reducing the search space. The very early candidates for neural networks were constructed as affine functions with some non-linear component-wise so-called activation function (Rosenblatt, Mcculoch, Pitts). That's still one of the most popular ingredients of neural networks, so let's stick to those and use
 
@@ -118,7 +121,7 @@ We will eventually use the \emph{sigmoid} function, which is one of the steady a
 
 Please note that I have clandestinely introduced a typical convention here: Variables in bold-face represent vectors (lower case) and matrices (upper-case). Regular type variables represent scalars, such as the components shown above. One more bit of lingo here: In the proceding, we'll call that function \( f( \mathbf{x})  \) our \emph{neural network model}, or simply \emph{the model}. The parameters of \( f( \mathbf{x})\), once tuned, somehow embody an \emph{understanding} of the meaning of hand-written digits, that's why you can say they represent a model of those digits.
 
-\bigskip
+----
 
 Let's wrap up: It looks like if we find all the parameters of a \(784 \times 10 \) matrix and a 10-dimensional bias, we could try and see whether we solve the problem with those. Good! Then, how can we determine those 7840 + 10 parameters? It turns out that this is not so difficult. If we had a so-called \emph{loss function} that for all images provides us with a scalar measure of how far we are from the perfect solution, we could use that function to go with the following procedure or algorithm:
 
@@ -159,13 +162,180 @@ Here, the factor of \(\frac{1}{2} \) is mere convenience as you'll see soon, and
 	\mathbf{x}^2 = \sum_{i=1}^{10}x_i^2
 \end{equation}
 
-with \(10\) being the dimesion of the classification vectors. By the way, finding a model this way, based on the knowledge of a large number of true result, is called \emph{supervised} learning. So this is what our model is going to undergo now: Supervised learning by optimizing the given function with respect to our chosen euclidean cost function. Of course, the euclidean ist just one possible functions Any function with the aforementioned characteristic - namely being scalar and indicative to the quality of the output - can do, and indeed other functions have been found more efficient with certain models. We stick to the euclidean simply because it is the simplest.
+with \(10\) being the dimension of the classification vector space. By the way, finding a model this way, based on the knowledge of a large number of true result, is called \emph{supervised} learning. So this is what our model is going to undergo now: Supervised learning by optimizing the given function with respect to our chosen euclidean cost function. Of course, the euclidean ist just one possible functions Any function with the aforementioned characteristic - namely being scalar and indicative to the quality of the output - can do, and indeed other functions have been found more efficient with certain models. We stick to the euclidean simply because it is the simplest.
+
+----
+
+\chapter{A Gradient to Descend }
+
+Time for some more math! The algorithm for tweeking and tuning the parameters [\ref{algo}] that we sketched in the previous chapter turns out to be very inefficient. The problem with tweeking single parameters is that you can only do it one single parameter at a time thus requiring a lot of iterations. That may still work somehow for our simple model - though probably painfully slow - but later on our journey that'll just not get us anywhere anymore. And this is where calculus comes to the rescue. Calculus is about calculating what would happen if we tuned some parameter this or that way. Since we're not actually tweeking parameters during the computations of calculus we can compute the expected change of the distance function for all parameters in a single go. The result of this calculation is itself a matrix or vector - one component for each parameter - telling us how much the cost will change when we change that parameter a tiny little, more precisely an infinitesimally small bit. This resulting matrix or vector is called the \emph{gradient} of the cost function. The gradient can geometrically be interpreted as a vector that points into the direction of steepest ascent. Thus adding a fraction of the gradient to our parameters would increase the cost function. We'll do the opposite, obviously - and subtract a fraction of the gradient to find the next, slightly better parameter set, i.e. yielding a lower value for the distance or cost. Doing that for a number of times until the distance function doesn't improve anymore will yield the desired result: A function that computes (more or less) exactly the results that we expect. A function that has learned to recognize images! However, exactly how good the function will be depends on a number of aspects that we will explore later in this text. For now, let's find the best we can get with a single matrix of weights and a vector of biases.
+
+\bigskip
+
+Let's wrap up: We're setting out to find the gradient of the cost function because that will show us how - given an arbitrary set of parameters - we can find a slightly better set, a set that produces a classification closer to the ideal, true classification. Ok? We're on a purposeful mission.
+
+In the following, we denote the gradient with respect to the weights and the bias by \( \nabla_{\mathbf{W}} \) or \( \nabla_{\mathbf{b}}\) respectively. The triangle operator is called \emph{nabla}. With \(w_{ij}\) being the parameter of \(\mathbf{W} \) at row \(i\) and column \(j\) and \(b_k\) being the k-th component of the bias vector, the gradient with respect to each parameter is defined by the following \emph{partial derivate} expressions
+
+\begin{equation}\label{eq:80}
+	\nabla_{\mathbf{W}} \mathcal{D}( \mathbf{W}, \mathbf{b})= \frac{\partial}{\partial w_{ij}}  \mathcal{D}( \mathbf{W}, \mathbf{b})
+\end{equation}
+
+\begin{equation}\label{eq:81}
+	\nabla_{\mathbf{b}} \mathcal{D}( \mathbf{W}, \mathbf{b}) = \frac{\partial}{\partial b_k} \mathcal{D}( \mathbf{W}, \mathbf{b})
+\end{equation}
+
+To actually perform the calculation, we need to re-write the distance function in equation \ref{eq:60} in terms of its components:
+
+\begin{equation}\label{eq:100}
+\mathcal{D}(w_{11},\cdots, b_1, \cdots) = \frac{1}{2} \sum_{k=1}^N \sum_{m=1}^{10} ( \phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m) - \bar{y}_m^{(k)})^2
+\end{equation}
+
+where \(x^{(k)}_n \) denotes the n-th component of the vector representing the k-th image and \(\bar{y}_m^{(k)}\) - in the same fashion - stands for the m-th component of the k-th label vector.
+This looks much more difficult than it actually is. When we finally get at the implementation in Scala, we'll make use of the more convenient vector algebra representation. We'll use a particular library called ND4J to do the majority of all index juggling for us. So, you'll see much fewer indices then. However, we do need this component-wise representation now to correctly calculate the derivatives defined in \ref{eq:80} and \ref{eq:81}. Once we have the result, we'll rephrase it back to the simpler vector notation and use only the latter in code. This is not only for our convenience or to end up with more readable and maintainable code. It also allows for much more efficient algorithms to do the actual matrix multiplications behind the scene. Exactly  that's what ND4J is going to do for us. So please keep in mind that what we're going to go through now will eventually ease our lives significantly.
+
+\bigskip
+
+One last thing: Before we start the big number crunching here, let me introduce a little technique that we physicists used to make our lives easier. It involves the delta symbol \(\delta_{ij}\) that we define as being 1 for \(i=j \) and 0 otherwise. It allows for the following nice tricks:
+
+\begin{equation}\label{eq:110}
+\frac{\partial b_i}{\partial b_j} = \delta_{ij}
+\end{equation}
+
+and similarly, obviously
+
+\begin{equation}\label{eq:120}
+\frac{\partial w_{ij}}{\partial w_{km}} = \delta_{ik} \cdot \delta_{jm}
+\end{equation}
+
+and the best thing is: it collapses sums, because all the terms containing a factor \(\delta_{ij}\) simply disapper for all \(  i \neq j\). Watch how this allows us to calculate derivatives of matrix products
+
+\begin{equation}\label{eq:130}
+\frac{\partial}{\partial x_k} \sum_j w_{ij} \cdot x_j = \sum_j w_{ij} \cdot \frac{\partial x_j}{\partial x_k}
+=\sum_j w_{ij} \cdot \delta_{jk} = w_{ik}
+\end{equation}
+
+Cool, isn't it?
 
 \bigskip
 
 
-Well, then let's get started.
- 
+Now back to the original problem. We'll apply the chain rule twice, dropping constant terms on the fly, and eventually use the \(\delta \)-function.
+
+\begin{equation}\label{eq:140}
+	\frac{\partial}{\partial w_{ij}}   \frac{1}{2} \sum_{k=1}^N \sum_{m=1}^{10} ( \phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m) - \bar{y}_m^{(k)})^2 =
+\end{equation}
+
+
+
+\begin{equation}\label{eq:150}
+ \sum_{k=1}^N \sum_{m=1}^{10}
+(\phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m) - \bar{y}_m^{(k)})
+\cdot
+\frac{\partial}{\partial w_{ij}}
+(\phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m) - \bar{y}_m^{(k)})
+\end{equation}
+
+To achieve the above result, we applied the chain rule \((f^2)' = 2 \cdot f \cdot f' \). And now using \( y^{(k)}_m\) instead of our original model function, namely
+\begin{equation}
+y^{(k)}_m = \phi(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m)
+\end{equation}
+
+and using the chain rule for arbitrary functions \( f(g)' = f'(g) \cdot g' \)
+
+\begin{equation}\label{eq:170}
+= \sum_{k=1}^N \sum_{m=1}^{10}
+(y_m^{(k)} - \bar{y}_m^{(k)})
+\cdot
+\phi^{\prime}(y_m^{(k)}) \cdot
+\frac{\partial}{\partial w_{ij}}\sum_{n=1}^{784} w_{mn} x^{(k)}_n
+\end{equation}
+
+\begin{equation}
+=\sum_k \sum_m \sum_n
+(y_m^{(k)} - \bar{y}_m^{(k)})
+\cdot
+\phi^{\prime}(y_m^{(k)}) \cdot
+\delta_{im} \cdot \delta_{jn} \cdot x^{(k)}_n
+\end{equation}
+
+\begin{equation}
+= \sum_k
+(y_i^{(k)} - \bar{y}_i^{(k)})
+\cdot
+\phi^{\prime}(y_i^{(k)}) \cdot
+x^{(k)}_j
+\end{equation}
+
+Since all our vectors are meant to be column vectors, the inner product is expressed by the 'dot' product with a transposed vector to the left like in \(c = \mathbf{a}^T \cdot \mathbf{b} \) - the result being a scalar, and the outer product is expressed by the 'dot' product with a transposed to the right like in \(\mathbf{M} = \mathbf{a} \cdot \mathbf{b}^T \), the result being a matrix this time.
+So now, with also the additional help of the Hadamard product symbol \(\odot \)  denoting component-wise multiplication, and the \(\nabla\) symbol for the gradient, we can confidently return to vector notation
+
+\begin{equation} \label{eq:180}
+\nabla_{\mathbf{W}} \mathcal{D}(\mathbf{W}, \mathbf{b})=
+\sum_{k=1}^N \left[ ( \mathbf{y}_k - \bar{\mathbf{y}}_k    )  \odot \mathbf{\Phi^{\prime}}(\mathbf{y}_k) \right]
+\cdot \mathbf{x}_k^T
+\end{equation}
+
+Look at this beautiful result: We can see that the gradient constitutes of three independent components, that simply need to be multiplied the correct way. Of course, this is exactly what the chain rule says, but without going through the effort of component-wise calculation, we probably wouldn't have confidently found that correct way of multiplying these components.
+
+Here, \( \mathbf{y}_k - \bar{\mathbf{y}}_k\) stems from the distance function, \( \mathbf{\Phi^{\prime}}(\mathbf{y}_k)\) from the activation function and \(\mathbf{x}_k\) from the matrix multiplication. Looking ahead I can tell you that the vector notation will also come in handy when we attempt to understand backpropagation, a very important concept of deep learning, later in this blog.
+
+One last thing to do is to calculate the gradient with respect to the bias, for which we simply start by looking at \ref{eq:170} and replace the partial differentiation with the one for the bias:
+
+\begin{equation}\label{eq:210}
+\frac{\partial}{\partial b_{i}}\mathcal{D}(\mathbf{W}, \mathbf{b})
+= \sum_{k=1}^N \sum_{m=1}^{10}
+(y_m^{(k)} - \bar{y}_m^{(k)})
+\cdot
+\phi^{\prime}(y_m^{(k)}) \cdot
+\frac{\partial}{\partial b_{i}}(\sum_{n=1}^{784} w_{mn} x^{(k)}_n + b_m)
+\end{equation}
+
+which again simplifies greatly by virtue of equations \ref{eq:110} and \ref{eq:130}:
+
+\begin{equation}\label{eq:220}
+\frac{\partial}{\partial b_{i}}\mathcal{D}(\mathbf{W}, \mathbf{b})
+= \sum_{k=1}^N
+(y_i^{(k)} - \bar{y}_i^{(k)})
+\cdot
+\phi^{\prime}(y_i^{(k)})
+\end{equation}
+
+in summary yielding in concise vector notation (repeating \ref{eq:180}):
+
+\begin{equation}
+\mathbf{y} = f(\mathbf{x})=\Phi(\mathbf{W} \cdot \mathbf{x} + \mathbf{b})
+\end{equation}
+
+\begin{equation}
+\nabla_{\mathbf{W}} \mathcal{D}(\mathbf{W}, \mathbf{b})=
+\sum_{k=1}^N \left[ ( \mathbf{y}_k - \bar{\mathbf{y}}_k    )  \odot \mathbf{\Phi^{\prime}}(\mathbf{W} \cdot \mathbf{x_k} + \mathbf{b}) \right]
+\cdot \mathbf{x}_k^T
+\end{equation}
+
+\begin{equation}
+\nabla_{\mathbf{b}} \mathcal{D}(\mathbf{W}, \mathbf{b})=
+\sum_{k=1}^N  ( \mathbf{y}_k - \bar{\mathbf{y}}_k    )  \odot \mathbf{\Phi^{\prime}}(\mathbf{W} \cdot \mathbf{x_k} + \mathbf{b})
+\end{equation}
+
+Since you're reading this very sentence right now, you have made it through quite some amount of number crunching. Congratulations! I think you now deserve a truly satisfactory experience and I have one for you: I'll show you the Scala code that implements our results. In the below code snippet, * is the operator notation for the Hadamard component-wise multiplication, and ** is used for matrix multiplication and outer product.
+
+\begin{lstlisting}[label=vectors_in_scala,caption=Transfering vector notation into code]
+
+def nabla_b (x: T, y_bar: T, W: T, b: T ) = {
+	val y = Phi(W ** x + b)
+	(y - y_bar) * Phi_prime(W ** x + b)
+}
+def nabla_W (x: T, y_bar: T, W: T, b: T ) = {
+	val y = Phi(W ** x + b)
+	((y - y_bar) * Phi_prime(W ** x + b)) ** x.T
+}
+
+\end{lstlisting}
+
+Isn't that amazing? Our mathematical results are precisely reflected in the code. We managed to delegate a lot of complex index juggling to a high-performance library and what's left is highly readable, easily comprehensible, downright beautiful code. That's why I love this job of mine!
+But now that we have warmed up to the basic math toolkit, I'd rather stay on the subject and address a mighty concept that'll help us go deeper. Be reminded: you should never go deeper before you know how to propagate back...;-)
+
+
 
 
 
