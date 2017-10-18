@@ -7,32 +7,43 @@ permalink: yainn1
 ---
 
 ### Preface
-==============
 
+-------
 
 *When software engineering meets machine learning*
+
 
 A lot of introductory material has been written and is still being written about neural networks these days, and some of the available material has reached an unbelievably high quality in both depth and accessibility, which is a rare combination. First and foremost, I must mention [Michael Nielson's online book](http://neuralnetworksanddeeplearning.com/) \cite{nielson2015}
 and [Chris Olah's blog](http://colah.github.io/) \cite{olah2015}, full of really beautiful reasoning, and Ian Goodfellow's popular text book ["Deep Learning"] (http://www.deeplearningbook.org/) \cite{goodfellow}. 
 So, as an analogy to the well-known saying "I'm standing on the shoulders of giants", I can only conclude that I am "wandering between the toes of giants". Hence, I will often-times refer the reader to one of these giants. 
  
+ 
 So, why yet another introductory text?
+
 
 As I was curiously wandering through the internet on my quest to understand machine learning, I found a lot of beautiful math, beautiful concepts and thorough, even more beautiful reasoning (I know I mentioned that already), but in the end there was always a grain of salt. The provided code examples somehow never truly appealed to me. That may be in parts because of personal gusto - admittedly. But it's definitely not only because of the used language. Python is pretty much ok, I'm getting used to it. 
 
+
 It's because - as a software engineer - I learned to love composable solutions so much. So what this blog is going to be about is - in a nutshell - a software engineering approach to neural networks: Going from requirements (math) to maintainable code (Scala) and reusable components (traits and classes). As an extra, you'll see how vector algebra can be used as the perfect link between solution design and implementation of high performance algorithms.
+
 
 In September 2017, I visited the EARL conference in London. EARL stands for "Enterprise Applications of the R Language". Joe Cheng of RStudio (actually a pretty brilliant lad, as it seemed), made some jokes about the verbose naming that you typically find in Java and similar communities. He said something like *I called this thing 'Promise' - in Java they would probably have called it AbstractPromiseAdapter or so...*. Everybody had a good laugh. Well - everybody but me! That verbose naming is there for very good reasons, I thought. It became obvious to me that data analytists and software engineers have some distance to bridge, before they can work together seamlessly. As a side note, though: Sometimes we software engineers, indeed, tend to exaggerate formalism, don't we?
 
+
 However, the good news that I brought back with me from the conference is that a) R Shiny is really a pretty cool tool and b) the R community does in fact start to realize the need for more of what we software engineers call enterprise readiness. Testing and version control have been popular topics during the conference. I could see that the other side - the data analytics community - is already aware of the changes, and moving in for the merge. And: yes, we software developers are warming up to the practice of explorative coding, too. Scala enjoyed a scripting environment called REPL since its inception, and JAVA 9 now also comes with a REPL, at last. I wonder, though, whether we software engineers are sufficiently aware of the fact that the cool kid - machine learning - comes with a pretty demanding friend: math!
+
 
 Data analytics and software engineering are two different academical fields, that - obviously - share common habits. For example, they both involve some kind of programming to solve their particular problems. But their respective approaches to programming are sometimes radically different. So let's compare them very shortly:
 
+
 The problems within data analytics are mostly expressed in terms of mathematics. Data analysts often call themselves  scientists (as opposed to *engineers*). Their programming experience is mainly determined by the need to easily express those mathematical concepts and explore the plethora of algorithms available to them to find the best solution to a given problem. Data analytics has a strong exploratory flavor and the typical tools and languages, such as mathlab, R, or Python, support expecially those needs. 
+
 
 Software engineering, however, usually is more concerned with modeling. Modelling some existing part of the real world - mostly the business world. Many times they're taking into consideration the human interaction with that part of the world. Engineers use patterns and principles, taking into consideration the entire life cycle of a software product. They often call themselves *craftsmen* and they love to talk about maintainability, non-functional requirements and javascript frameworks.
 
+
 ----------------
+
 
 These two worlds coexisted in peace and mutual ignorance for decades (Exaggerating, of course ;-). Now, with machine learning on the very maximum of Gartners hype cycle \cite{gartner2017}, however, inevitably more and more software products will have to leverage some kind of machine learning to keep up with growing expectations. Data analysts' artifacts will have to share the application code's entire lifecycle to be incorporated into maintainable software products. Data analysts and software engineers will have to talk more, understand each other better, and most importantly, start to respect each others' programming habits. Eventually, I believe, the respective fields will even merge together. I believe that I'm spotting signs that we're already building roads for that big merger in the success of the Scala language. In his well-received talk in New York in 2016, Dean (Snow) Wampler of Lightbend eloquently called Scala "the unpredicted lingua franca of data science" \cite{wampler2016}. Certainly, Dean is somewhat biased, obviously, as his company has some stakes in the language. But he made some very good points. Scala is extremely expressive without being too verbose, and it's statically typed and feature-rich. It support both the exploratory and the enterprise coding style. I'll be using the potential of Scala's ecosystem in the accompanying source code for this blog to prove that point. You'll see: It can be used exploratorily and expressively when dealing with mathematical concepts, and still easily produces well-designed production-ready artifacts when closing in on production deployments.
 
