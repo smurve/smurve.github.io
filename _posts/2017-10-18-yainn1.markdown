@@ -332,7 +332,3 @@ But now that we have warmed up to the basic math toolkit, we'd rather not start 
 
 
 
-
-
-
-##### [Part II: Deep Learning and Backpropagation]({% post_url 2017-04-12-yainn2 %})

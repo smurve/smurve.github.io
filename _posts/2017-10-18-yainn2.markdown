@@ -1,0 +1,387 @@
+---
+layout: post
+title:  "YAINN Part II"
+date:   2017-10-18 11:49:45 +0200
+categories: neural networks
+permalink: yainn2
+---
+
+# Deep Learning and back propagation
+
+#### Calculus's Chain Rule At It's Best
+
+We have seen that if we have an affine function with arbitrary weights \\(w_{ij} \\) and biases \\(b_k \\) and a sufficient number of input values (images) that we know the correct output values of, we can use the function's gradient to find those parameters that best produce the known output.
+
+We reasonably hope that the function also produces meaningful classifications for yet unseen input values. I use the word *hope* intentionally because the resulting function may indeed fail to generalize, i. e. fail to produce meaningful output on any new input values. This effect may be due to so-called *overfitting* or local minima, which both are so well described in Michael's Blog (REF!!!) that I reiterate my recommendation that you consult the text given there.
+
+<br/>
+So, what we came up with until now was a function looking like:
+
+\begin{equation}
+\mathbf{f}(\mathbf{x})=\Phi(\mathbf{W} \cdot \mathbf{x} + \mathbf{b})
+\end{equation}
+
+Indeed, I will show later when we finally get into the source code on github that this approach correctly classifies about 90% of the test images. That's not bad for a start, but certainly not good enough to use it for automatic reading of hand-written checks or any other industrial application. A well known theoretical limitation of the the *affine plus activation* approach is that it can only solve problems where the input values are linearly separable. It's said that amongst other things especially this limitation of a single affine function with some activation functions have resulted in the first big disapointment with respect to the potential of machine learning and AI.
+
+So, the next best thing appeared to be simply plugging two or more of those functions together, but that was computationally infeasible at that time. However, exactly that's what we - amongst so many others nowaddays - are going to do here, because, obviously, sufficient computing power today comes with almost every laptop.
+
+Explicitly, we'll be looking at functions like
+
+\begin{equation}
+\mathbf{f}(\mathbf{x})=\mathbf{\Phi_2}(\mathbf{W_2} \cdot \mathbf{\Phi_1(\mathbf{W_1} \cdot \mathbf{x} + \mathbf{b_1})} + \mathbf{b_2})
+\end{equation}
+
+or even
+
+\begin{equation} \label{eq:300}
+\mathbf{f_3}(\mathbf{x})=\mathbf{\Phi_3}(\mathbf{W_3} \cdot \mathbf{\Phi_2(\mathbf{W_2} \cdot \mathbf{\Phi_1(\mathbf{W_1} \cdot \mathbf{x} + \mathbf{b_1})} + \mathbf{b_2})} + \mathbf{b_3}) 
+\end{equation}
+
+and it won't stop there. Recognize the pattern? Just nesting affine and non-linear functions into each other. Modern neural networks have hundreds of functions plugged into each other that way. Scared? I understand, but don't worry. We're not going to go through the effort of component-wise differentiation of these expressions. However, on the other hand, there's no way around calculating the gradients for each of the involved weight matrices or bias terms. We need the gradient - as we've seen - to show us how to update the weight and bias parameters, such that afterwards the results match the given true output better. If only we could find a general way of calculating the gradients in some iterative or recursive manner! Well, of course, we can and that's what's called *backpropagation*.
+
+<br/>
+At last - this is the time to introduce some other lingo you must have been missing until now: Neural networks come in so-called *layers*. Historically, the term *layer* has been associated with its biological counterpart in our brains. However, when we talk about functions and later about software implementation, that interpretation is difficult to transfer. Thus, within this text, I'll be using the term *layer* for any elementary function that is part of a chain of functions that constitute a neural network. That essentially deviates a bit, but not too far, from the typical definition used everywhere else. I truly hope that I don't cause too much confusion by that, for I really believe it eases the understanding and implementation of neural networks significantly.
+
+<br/>
+Let's be courageous and find all the gradients for equation \ref{eq:300}. This is a problem - admittedly. But that's what we do: We solve problems. And we're not afraid, because we have the necessary methods at hand and we're able to concentrate. The methods are *divide and conquer* and *reusable components*. Divide and conquer is the art of splitting a seemingly intractable problem into smaller ones in such a way that the smaller problems become solvable and (and that's the art) the small solutions fit together easily to form the solution of the original problem. Reusable components, apart from saving a lot of re-work, encapsulate knowledge by hiding some details, thus introducing a level of abstraction or granularity. Depending on what exactly someone is trying to achieve at a certain point in time, she can choose to consider the component as a well-defined black box or dive deeper into its hidden details. We say: the problem space becomes *navigable*.
+
+<br/>
+Ok then, we got our tools and methods ready. Let's split equation \ref{eq:300} into three *layers* and the distance function. That seems to be one natural choice.
+
+\begin{equation}
+\\begin{array}{r c l }
+\mathbf{f_1}(\mathbf{x})& =& \Phi_1(\mathbf{W_1} \cdot \mathbf{x} + \mathbf{b_1}) \\\ 
+\mathbf{f_2}(\mathbf{f_1})& =& \Phi_2(\mathbf{W_2} \cdot \mathbf{f_1} + \mathbf{b_2}) \\\
+\mathbf{f_3}(\mathbf{f_2})& =& \Phi_3(\mathbf{W_3} \cdot \mathbf{f_2} + \mathbf{b_3}) \\\
+\mathcal{D}(\mathbf{W_1}, \mathbf{W_2}, \mathbf{W_3}, \mathbf{b_1}, \mathbf{b_2}, \mathbf{b_3}) & =&  \frac{1}{2} \sum( \mathbf{f_3} - \bar{\mathbf{y}})^2
+\\end{array}
+\end{equation}
+
+This reads like: First, apply function \\(\mathbf{f_1}\\) to the input (image), then apply \\(\mathbf{f_2}\\) to the result, then apply \\(\mathbf{f}\\) to that result, then compare the final outcome to the known correct result by calculating the distance from it.
+
+The first three functions now look all fairly similar, so we can write down some general equations. In what follows, the somewhat slopply notation \\( \frac{\partial{\mathbf{f_i} }}{\partial{\mathbf{W_i} }} \\) and similar expression will make the coming equations easier to read. I'm sure you would be able to figure out exactly what they mean in terms of the involved components, if you had to.
+
+From the previous post, generally we already know something about each layer:
+\begin{equation}\label{dfdw}
+	\frac{\partial{\mathbf{f_i} }}{\partial{\mathbf{W_i} }} = \mathbf{\Phi_i^\prime} \odot \mathbf{f_{i-1}^T}
+\end{equation}
+
+\begin{equation}\label{dfdf}
+	\frac{\partial{\mathbf{f_i }}}{\partial{\mathbf{f}_{i-1} }} = \mathbf{\Phi}^\prime_i \odot \mathbf{W}_i
+\end{equation}
+
+That means we can calculate those terms right away wherever they appear with only the knowledge of the current layer. But to calculate the gradient we have to apply the chain rule once more:
+
+\begin{equation}
+\frac{\partial \mathcal{D}}{\partial{\mathbf{W}_i }}=
+\frac{\partial \mathcal{D}}{\partial \mathbf{f}_i} \cdot 
+\frac{\partial{\mathbf{f}_i }}{\partial{\mathbf{W}_i }}  
+\end{equation}
+
+and it is the first term \\(\frac{\partial \mathcal{D}}{\partial \mathbf{f}_i}\\) that we can't calculate with mere knowledge of the current fuction. Luckily, we can get that term from the subsequent layer. And it's exactly the handback of this term from each layer to its prior layer that we call \emph{backpropagation}. The following equations outline that backpropagation schematically. You may want to read it bottom up, where the last (here: third) layer gets this unknown term as the derivative of the distance or cost function, which is \\(\mathbf{y} - \mathbf{\bar{y}} \\) in case of the euclidean distance that we used previously. It turns out that this is the most efficient way to compute all the gradients of all layers. You can convince yourself that the gradients with respect to the bias follow the same propagation pattern. We'll see it when we start coding, which won't take long anymore.
+
+<br/>
+\begin{equation}\label{key}
+\\begin{array}{cccccccccccccc}
+	 \frac{\partial \mathcal{D}}{\partial{\mathbf{W_1} }} & = & 
+	 \frac{\partial \mathcal{D}}{\partial \mathbf{f_1}}  & \cdot & 
+	 \frac{\partial{\mathbf{f_1} }}{\partial{\mathbf{W_1} }}  
+\\\ 
+\\\
+	 & & \uparrow
+\\\
+	& &
+	\frac{\partial \mathcal{D}}{\partial \mathbf{f_1}} & = & 
+	\frac{\partial \mathcal{D}}{\partial \mathbf{f_2}} & \cdot &
+	\frac{\partial{\mathbf{f_2} }}{\partial{\mathbf{f_1} }} 
+\\\ 
+\\\
+	\frac{\partial \mathcal{D}}{\partial{\mathbf{W_2} }}  & = & &  & 
+	\frac{\partial \mathcal{D}}{\partial \mathbf{f_2}} & \cdot &
+	\frac{\partial{\mathbf{f_i} }}{\partial{\mathbf{W_2} }} 
+\\\
+\\\
+ & & & & \uparrow
+\\\
+   &  & &  & 
+	\frac{\partial \mathcal{D}}{\partial \mathbf{f_2}} & = &
+	\frac{\partial \mathcal{D}}{\partial \mathbf{f_3}} & \cdot &
+	\frac{\partial{\mathbf{f_3} }}{\partial{\mathbf{f_2} }} 
+\\\ 
+\\\
+\frac{\partial \mathcal{D}}{\partial{\mathbf{W_3} }}  & = & &  & &  & 
+\frac{\partial \mathcal{D}}{\partial \mathbf{f_3}} & \cdot &
+\frac{\partial{\mathbf{f_3} }}{\partial{\mathbf{W_3} }} 
+\\\
+\\\
+& & & & & & \uparrow
+\\\
+& & & &\frac{\partial \mathcal{D}}{\partial \mathbf{f_3}}  & = & \mathbf{y} - \mathbf{\bar{y}} 
+\\end{array}
+\end{equation}
+
+Let's read this formula bottom up - from the last layer back to the first: The third layer uses the derivative of the cost function to compute its gradient. Then it computes the derivative of the cost function with respect to its own input, which is - obviously the output of the previous layer. This derivate is then passed back to the previous layer, such that the latter can do exactly the same computation, and so forth. Above formula tells the story of the weight gradients. You can easily do the same exercise for the gradients with respect to the bias. What's even more convenient is that the above formula indicates that we can consider the respective activation function and affine function both as separate layers in their own right. An *activation layer* does not have parameters to update, though,  so no gradients need be calculated there. However, also the activation layers will need to pass the cost derivatives through to their respective previous layers, after having multiplied them in a Hadamard fashion with their own derivate. 
+
+#### Design and Implementation
+
+Now, within the context of this academic exercise, and equipped with an efficient algorithm for back propagation, I propose the following software design:
+
+ * 1) A neural network is a chain of functional layers
+
+ * 2) A functional layer provides a method that computes the result by passing its result to the next layer and passing the    returned value back to its previous layer.
+
+ * 3) The entire chain can therefore act as a single functional layer, sub-chains are composable
+
+ * 4) A functional layer provides a method that allows the previous layer to retrieve the cost derivative with respect to its own output
+
+ * 5) A functional layer that features parameters shall be able to compute and provide its gradient 
+
+ * 6) A functional layer shall provide a method that updates its parameters
+
+As I mentioned in the introduction, I will use the Scala language and ecosystem to demonstrate a sound high-performance implementation of the concepts that we have just learned. Let's start with the fundamental concept of a *layer*, expressed in form of a Scala trait:
+
+```scala
+trait Layer {
+
+		/** return the function value for the given x */
+		def func(x: T): T
+		
+		/** Forward pass through the entire network. */
+		def fp(x: T): T
+		
+		/** Forward and backward pass in one go */
+		def fbp(x: T, yb: T): BackPack
+		
+		/** return the subsequent layer in this network. */
+		def next: Layer
+		
+		/** The "chaining" operator. Chains layers to form a neural network */
+		def !!(rhs: Layer): Layer
+		
+		/** cost derivative with respect to this layer's input. */
+		def dC_dy(x: T, dC_dy_from_next: T): T
+		
+		/** return a list of all gradients from subsequent layers with earlier layers first. */
+		def grads(x: T, dC_dy_from_next: T): Option[(T, T)]
+		
+		/** Update all parameters */
+		def update(grads: List[(T, T)]): Unit
+		
+}
+
+```
+
+The particular implementations for affine and activation layers make use of a simple but powerful optimization technique, therefore I postpone their discussion until we had the opportunity to address the subject of optimization in section \ref{accelerators}. 
+
+However, if you can't wait, you'll find the code in the accompanying github account at [the accompanying github account](https://github.com/smurve/yainn). Actually, the real code has more documentation than I can show here, and there's also comprehensive markdown documentation on the implementation specifics. Here, \\(T\\) is a general \\(m \times n\\) tensor, i.e. a vector or a matrix. It's actually an alias for ND4J's INDArray abstraction that allows for optimum performance by adressing the particular hardware implementation behind the scenes. It will, e.g., automatically choose GPUs if the libraries required for that are found on the class path. The misterious class ```BackPack``` holds the gradients and cost derivatives needed for backpropagation.
+
+This design allows us to create arbitrarily deep neural networks by simply stacking them on top of each other:
+
+```scala
+/**
+	* create the network from randomly initialized weights and biases
+*/
+def createNetwork (nx: Int, nh: Int, ny: Int, seed: Long): Layer = {
+	
+	val W0 = Nd4j.rand(...
+	val b0 = Nd4j.rand(...
+	val W1 = Nd4j.rand(...
+	val b1 = Nd4j.rand(...
+	
+	Affine(W0, b0) !! Sigmoid() !! Affine(W1, b1) !! Sigmoid() !! Output(euc, euc_prime)
+}
+```
+<br/>
+And with such a network, our optimization algorithm \ref{algo} may look similar to the below (In reality, it's a bit more involved, so you'll see something slightly different in the real code)
+
+```scala
+val nn = createNetwork(.....)
+
+while (data.hasNext && cost > threshold) {
+	
+			val (trainingImages, trainingLabels) = data.nextBatch()
+	
+			(grad, cost) = nn.fbp(trainingImages, trainingLabels)
+
+			val delta = -grad * ETA
+
+			nn.update(delta)
+			...
+}
+```
+
+which can be described as: Subtract a little portion (ETA) of the gradient from the current parameters to get to the next, better set of parameters. Repeat as long as the cost is above a certain threshold. Once this procedure is finished the resulting network should be able to correctly classify (almost) all yet unseen images of handwritten digits, like e.g. in the following code snippet that you'll also see in the github project. This snippet displays a number of images together with their true labels and the mostly matching classifications of our neural network. 
+
+```scala
+for ( i <- 0 until n ) {
+		val img = imgs(->, i)
+
+		/* This is the actual prediction - no more than a function, just as I promised */
+		val classification = nn.fp(img)
+
+		println(visualize(img.reshape(28, 28)))
+		val label = ...
+		println(s"labeled as   : $label, classified as: $classification")
+}
+```
+
+<br/>
+
+#### Leveraging Linear Algebra Accelerators
+
+
+When using the variable \\(\mathbf{x}\\) in the text until now, we were always referring to a single input vector or image. So, when it comes to training a neural network with 60'000 images, which is the case for MNIST, we would pass 60'000 images to the network - one by one. This is very inefficient, as it doesn't make maximum use of the massive parallelization potential that comes with matrix multiplication. You can convince yourself about that potential easily by finding that each component of the resulting matrix product does not depend on any other component. It only depends on the same read-only data as the other components. It's therefore much more efficient to compute 1000 or even 2000 images in a single go. The underlying framework - i. e. any of the linear algebra libraries that can be used under the hood of ND4J's INDArray abstraction - will then decide by itself how much data it can push into the CPU/GPU's cache to process in a single go. 
+
+Interestingly, it's the mere fact that we're using linear algebra here that allows us to achieve the desired optimization. Let's have a look at a single affine function in isolation:
+
+\begin{equation}
+\mathbf{f}(\mathbf{x})=\mathbf{W} \cdot \mathbf{x} + \mathbf{b}
+\end{equation}
+
+Here, \\(\mathbf{x}\\) is a single column vector representing a single image. Now imagine, we're taking a number \\(N\\)of those vectors side by side. Obviously, taken together, they form a matrix. Multiplication of two matrices is well defined and it turns out that the result of multiplying \\(\mathbf{W}\\) with the matrix \\(\mathbf{X}\\) defined as
+
+\begin{equation}
+	\mathbf{X} := (  \mathbf{x_1}, \mathbf{x_2}, \dots,  \mathbf{x_N}, )
+\end{equation}
+
+is just the matrix 
+
+\begin{equation}
+\mathbf{Y} := \mathbf{W} \cdot \mathbf{X} = (  \mathbf{y_1}, \mathbf{y_2}, \dots,  \mathbf{y_N}, )
+\end{equation}
+
+consisting of all of the results \\(\mathbf{y_i}\\) that we would have computed by multiplying by \\(\mathbf{W}\\) one by one. So, that was easy. Only, adding a bias \\(\mathbf{b}\\) wouldn't apply to each of the resulting \\(\mathbf{y_i}\\). Indeed, adding a vector to a matrix is not even well defined, so that's not an option. It takes the help of another little trick, to add the bias to every single of the \\(\mathbf{y_i}\\)
+
+If we stack the bias to the left of the weight matrix and pad the \\(\mathbf{X}\\) with a top row of \\(1\\)s, then we'll arrive at the following vector notation:
+
+\begin{equation} \label{parallel_affine}
+\mathbf{f}(\mathbf{x})=(\mathbf{b};\mathbf{W}) \cdot \left( 
+\\begin{array}{c} 
+1, 1, \dots, 1 \\\
+\mathbf{X} 
+\\end{array}
+\right)
+\end{equation}
+
+or in component notation 
+
+\begin{equation}
+\mathbf{f}(\mathbf{x})=
+\left( 
+\\begin{array}{ccccc} 
+b_1 & w_{11} & w_{12} & \dots &  w_{1n}
+\\\
+b_2 & w_{21} & w_{22} & \dots &  w_{2n}
+\\\
+\dots & \dots &\dots &\dots &\dots
+\\\
+b_m & w_{m1} & w_{m2} & \dots &  w_{mn}
+\end{array}
+\right)
+\cdot
+\left( 
+\begin{array}{cccc} 
+1 & 1 & \dots & 1
+\\\
+x_1^{(1)}& x_1^{(2)}& \dots & x_1^{(N)}
+\\\
+x_2^{(1)}& x_2^{(2)}& \dots & x_2^{(N)}
+\\\
+\dots &\dots &\dots &\dots
+\\\
+x_n^{(1)}& x_n^{(2)}& \dots & x_n^{(N)}
+\\end{array}
+\right)
+\end{equation}
+
+and with summation being performed over the range \(i \in [1, n]\):
+
+\begin{equation}
+= \left(
+\\begin{array}{cccc} 
+b_1 + \sum w_{1i} \cdot x_i^{(1)} & b_1 + \sum w_{1i} \cdot x_i^{(2)} & \dots & b_1 + \sum w_{1i} \cdot x_i^{(N)}
+\\\
+b_2 + \sum w_{2i} \cdot x_i^{(1)} & b_2 + \sum w_{2i} \cdot x_i^{(2)} & \dots & b_2 + \sum w_{2i} \cdot x_i^{(N)}
+\\\
+\dots & \dots & \dots & \dots
+\\\
+b_m + \sum w_{mi} \cdot x_i^{(1)} & b_m + \sum w_{mi} \cdot x_i^{(2)} & \dots & b_m + \sum w_{mi} \cdot x_i^{(N)}
+\\end{array}
+\right)
+\end{equation}
+
+\begin{equation}
+= \left(
+\mathbf{f}(\mathbf{x^{(1)}}), \mathbf{f}(\mathbf{x^{(2)}}), \dots, \mathbf{f}(\mathbf{x^{(N)}})
+\right)
+\end{equation}
+
+which is a matrix composed of all the column vectors that we'd get from applying the affine function to each vector \\(\mathbf{x}\\) one by one. And that is exactly what we set out to achieve!
+
+In summary: Using equation \ref{parallel_affine}, we have a notation that allows us to to compute the affine function for any number of input vectors in one go. And the good news is that, again, we can simply use the same formula to implement this idea in our code.
+
+```scala
+def func(x: T): T = {
+	h(b, W) ** v1(x)
+}
+```
+
+Here, the \\(\mathbf{h}\\) is a helper function that stacks the bias \\(\mathbf{b} \\) left to the weight matrix \\(\mathbf{W} \\) and  \\(\mathbf{v1} \\) is a function that stacks \\(1\\)s on top of \\(\mathbf{x} \\), the latter being the matrix consisting of an entire mini-batch of images.
+
+<br/>
+And this, finally, concludes the theory. We have learned by now how to find a good set of parameters for nested affine functions with non-linear activation functions inbetween, such that applying the resulting deep network function to any number of yet-unseen images returns a matrix of one-hot vectors that represent the known classifications - as good as it can get with the given architecture.  
+
+Please keep in mind that our discussions didn't cover performance, maintainability or even mathematical soundness to a perfectly satisfactory extend. I'm not saying that Scala is the only language that shall prevail. And I'm not saying that the code examples are perfect to go into production right away. After all, this blog and its accompanying code constitute no more than an academical exercise. An exercise, though, that I found worth writing and I hope you - in retrospect - find worth reading.
+
+
+#### Where to Go From Here
+
+I invite you now to go to github and check out my little [Scala project](https://github.com/smurve/yainn), where a markdown document will pick you up and guide you through the implementation of layers and through the experiments that I demonstrate with their help. You'll see much more more than what you typically expect in an introductory Hello World example. You'll see some ... *pause* ... *drums* ... unit tests! You see gradient checks and a lot of scaladoc comments everywhere. With the additional complexity, I want to remind you of what this post was actually about:
+
+
+<br/>
+*When software engineering meets machine learning...*
+
+<br/>
+*there's practices to merge and a whole bunch of amazing new things to learn for everybody!*
+
+<br/>
+\begin{thebibliography}{9}
+	
+	
+	\bibitem{nielson2015}
+	Michael A Nielson, \textit{Neural Networks and Deep Learning}.
+	Determination Press, 2015
+	\\\texttt{http://neuralnetworksanddeeplearning.com/}
+	
+	\bibitem{olah2015}
+	Christopher Olah. \textit{colah's Blog}
+	Personal blog
+	
+	\bibitem{goodfellow}
+	Ian Goodfellow, Yoshua Bengio, Aaron Courville, \textit{	Deep Learning }
+	Online book MIT Press 2016,
+	\texttt{http://www.deeplearningbook.org}
+
+	\bibitem{gartner2017}
+	Gartner's Hype Cycle. Web Resource.
+	\\\texttt{ (http://www.gartner.com/smarterwithgartner/top-trends-in-the-gartner-hype-cycle-for-emerging-technologies-2017/)}
+	
+	\bibitem{wampler2016}
+	Dean Wampler. \textit{Scala, the unpredicted lingua franca for data science}
+	 \\\texttt{https://www.youtube.com/watch?v=3\_oV25nZz8I\&t=741s}
+	Youtube recording. Scala Days NY 2016
+	
+	\bibitem{nd4j}
+	ND4J Development Team. ND4J: N-dimensional arrays and scientific computing for the JVM, Apache Software Foundation License 2.0.* 
+	\\\texttt{http://nd4j.org}
+	
+	\bibitem{yainn2017}
+	Wolfgang I. Giersche, \textit{yainn}. Github Repo
+	\\\texttt{https://github.com/smurve/yainn}
+	
+	\bibitem{mnist89}
+	LeCun, Y., Bottou, L., Bengio, Y., and Haffner, P. (1998). \textit{Gradient-based learning applied to document recognition}. Proceedings of the IEEE, 86, 2278–2324.	
+	\\Data files and results at \texttt{http://yann.lecun.com/exdb/mnist/}
+\end{thebibliography}
+
