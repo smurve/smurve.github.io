@@ -331,4 +331,5 @@ Isn't that amazing? Our mathematical results are precisely reflected in the code
 But now that we have warmed up to the basic math toolkit, we'd rather not start coding yet but stay on the subject and address a mighty concept that will help us go deeper. Always remember: you should never go deeper unless you know how to propagate back...;-)
 
 
+##### [Part II: Deep Learning and Backpropagation]({% post_url 2017-10-18-yainn2 %})
 
