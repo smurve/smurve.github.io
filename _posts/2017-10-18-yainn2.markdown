@@ -8,7 +8,7 @@ permalink: yainn2
 
 # Deep Learning and back propagation
 
-#### Calculus's Chain Rule At It's Best
+#### Calculus's Chain Rule At Its Best
 
 We have seen that if we have an affine function with arbitrary weights \\(w_{ij} \\) and biases \\(b_k \\) and a sufficient number of input values (images) that we know the correct output values of, we can use the function's gradient to find those parameters that best produce the known output.
 
@@ -329,7 +329,27 @@ def func(x: T): T = {
 Here, the \\(\mathbf{h}\\) is a helper function that stacks the bias \\(\mathbf{b} \\) left to the weight matrix \\(\mathbf{W} \\) and  \\(\mathbf{v1} \\) is a function that stacks \\(1\\)s on top of \\(\mathbf{x} \\), the latter being the matrix consisting of an entire mini-batch of images.
 
 <br/>
-And this, finally, concludes the theory. We have learned by now how to find a good set of parameters for nested affine functions with non-linear activation functions inbetween, such that applying the resulting deep network function to any number of yet-unseen images returns a matrix of one-hot vectors that represent the known classifications - as good as it can get with the given architecture.  
+We still need to decide which particular activation functions we want to use. Up to now, we just called them \\(\mathbf{\Phi(\mathbf{x})} \\) and didn't care much. But eventually we need to, because those element-wise applied activation functions provide the important ingredient of non-linearity. Without those functions, any nested two affine functions would end up being just another affine function.  Wikipedia describes the most commonly used functions in a comprehensive article. In the accompanying code of this blog, we'll use  the so-called *rectified linear unit* or ReLU  and the \emph{sigmoid} function \\(\sigma(x) \\)  defined as 
+
+\begin{equation}
+ \text{ReLU}(x) = \text{max}(0, x) 
+\end{equation}
+
+and
+
+\begin{equation}
+\sigma(x) = \frac{1}{1+e^{-x}} 
+\end{equation}
+
+We'll use a ReLU inbetween any two affine layers. A ReLU has the obvious advantage of being computationally inexpensive. On a forward pass, it essentially changes all negative input to zero which introduces some kind of sparseness and improves the overall computational performance, because the number of necessary multiplications is reduced. The fact that it will backpropagate a zero gradient with respect to all negative weights or biases is less destructive than it seems. These properties make it a first choice for most deep neural networks. 
+
+The sigmoid function \\(\sigma(x) \\) is one of the functions that are commonly used at the end of the network to determine the output values. As you can see from the function definition, it maps any real number into the open-ended range \\(]0, 1[ \\), which lends itself to the interpretation as a classification value. The sigmoid function is a bit more computationally expensive and has the disadvantage that it provides extremely small gradients back for values of \\( -3 > x > 3\\), which can sometime adversely impact the overall convergence.
+
+
+<br/>
+And this, finally, concludes the theory. We now know how to write a program that recognizes hand-written digits. We have learned how to find a good set of parameters for nested affine functions with non-linearities inbetween by simply minimizing an adequate \emph{cost function} through gradient descent.
+After a sufficient number of gradient descent steps we obtain a deep network function that - applied to any number of yet-unseen images - returns a matrix of one-hot vectors that represent the known classifications - as good as it can get with the given architecture.  
+
 
 Please keep in mind that our discussions didn't cover performance, maintainability or even mathematical soundness to a perfectly satisfactory extend. I'm not saying that Scala is the only language that shall prevail. And I'm not saying that the code examples are perfect to go into production right away. After all, this blog and its accompanying code constitute no more than an academical exercise. An exercise, though, that I found worth writing and I hope you - in retrospect - find worth reading.
 
