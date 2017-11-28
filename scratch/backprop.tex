@@ -389,7 +389,7 @@ So, what we came up with until now was a function looking like:
 \mathbf{f}(\mathbf{x})=\Phi(\mathbf{W} \cdot \mathbf{x} + \mathbf{b})
 \end{equation}
 
-Indeed, I will show later when we finally get into the source code on github that this approach correctly classifies about 90\% of the test images. That's not bad for a start, but certainly not good enough to use it for automatic reading of hand-written checks or any other industrial application. A well known theoretical limitation of the the \emph{affine plus activation} approach is that it can only solve problems where the input values are linearly separable. It's said that amongst other things especially this limitation of a single affine function with some activation functions have resulted in the first big disapointment with respect to the potential of machine learning and AI. 
+Indeed, I will show later when we finally get into the source code on github that this approach correctly classifies about 90\% of the test images. That's not bad for a start, but certainly not good enough to use it for automatic reading of hand-written checks or any other industrial application. A well known theoretical limitation of the \emph{affine plus activation} approach is that it can only solve problems where the input values are linearly separable. It's said that amongst other things especially this limitation of a single affine function with some activation functions have resulted in the first big disapointment with respect to the potential of machine learning and AI.
 
 So, the next best thing appeared to be simply plugging two or more of those functions together, but that was computationally infeasible at that time. However, exactly that's what we - amongst so many others nowaddays - are going to do here, because, obviously, sufficient computing power today comes with almost every laptop.
 
@@ -725,7 +725,7 @@ After a sufficient number of gradient descent steps we obtain a deep network fun
 \bigskip
 
 
-Please keep in mind that our discussions didn't cover performance, maintainability or even mathematical soundness to a perfectly satisfactory extent. I'm not claiming that this is text is comprehensive or even complete, and I'm not saying that Scala is the only language that can do the job. Neither can I claim that the code examples are perfect to go into production right away. After all, this blog and its accompanying code constitute no more than an educational and hopefully to a certain degree recreational exercise. An exercise that I found worth writing and I hope you - in retrospect - find worth reading.
+Please keep in mind that our discussions didn't cover performance, maintainability or even mathematical soundness to a perfectly satisfactory extent. I'm not claiming that this text is comprehensive or even complete, and I'm not saying that Scala is the only language that can do the job. Neither can I claim that the code examples are perfect to go into production right away. After all, this blog and its accompanying code constitute no more than an educational and hopefully to a certain degree recreational exercise. An exercise that I found worth writing and I hope you - in retrospect - find worth reading.
 
 \bigskip
 

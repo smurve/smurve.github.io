@@ -21,7 +21,7 @@ So, what we came up with until now was a function looking like:
 \mathbf{f}(\mathbf{x})=\Phi(\mathbf{W} \cdot \mathbf{x} + \mathbf{b})
 \end{equation}
 
-Indeed, I will show later when we finally get into the source code on github that this approach correctly classifies about 90% of the test images. That's not bad for a start, but certainly not good enough to use it for automatic reading of hand-written checks or any other industrial application. A well known theoretical limitation of the the *affine plus activation* approach is that it can only solve problems where the input values are linearly separable. It's said that amongst other things especially this limitation of a single affine function with some activation functions have resulted in the first big disapointment with respect to the potential of machine learning and AI.
+Indeed, I will show later when we finally get into the source code on github that this approach correctly classifies about 90% of the test images. That's not bad for a start, but certainly not good enough to use it for automatic reading of hand-written checks or any other industrial application. A well known theoretical limitation of the *affine plus activation* approach is that it can only solve problems where the input values are linearly separable. It's said that amongst other things especially this limitation of a single affine function with some activation functions have resulted in the first big disapointment with respect to the potential of machine learning and AI.
 
 So, the next best thing appeared to be simply plugging two or more of those functions together, but that was computationally infeasible at that time. However, exactly that's what we - amongst so many others nowaddays - are going to do here, because, obviously, sufficient computing power today comes with almost every laptop.
 
@@ -57,7 +57,7 @@ Ok then, we got our tools and methods ready. Let's split equation \ref{eq:300} i
 \\end{array}
 \end{equation}
 
-This reads like: First, apply function \\(\mathbf{f_1}\\) to the input (image), then apply \\(\mathbf{f_2}\\) to the result, then apply \\(\mathbf{f}\\) to that result, then compare the final outcome to the known correct result by calculating the distance from it.
+This reads like: First, apply function \\(\mathbf{f_1}\\) to the input (image), then apply \\(\mathbf{f_2}\\) to the result, then apply \\(\mathbf{f_3}\\) to that result, then compare the final outcome to the known correct result by calculating the distance from it.
 
 The first three functions now look all fairly similar, so we can write down some general equations. In what follows, the somewhat slopply notation \\( \frac{\partial{\mathbf{f_i} }}{\partial{\mathbf{W_i} }} \\) and similar expression will make the coming equations easier to read. I'm sure you would be able to figure out exactly what they mean in terms of the involved components, if you had to.
 
@@ -78,7 +78,7 @@ That means we can calculate those terms right away wherever they appear with onl
 \frac{\partial{\mathbf{f}_i }}{\partial{\mathbf{W}_i }}  
 \end{equation}
 
-and it is the first term \\(\frac{\partial \mathcal{D}}{\partial \mathbf{f}_i}\\) that we can't calculate with mere knowledge of the current fuction. Luckily, we can get that term from the subsequent layer. And it's exactly the handback of this term from each layer to its prior layer that we call \emph{backpropagation}. The following equations outline that backpropagation schematically. You may want to read it bottom up, where the last (here: third) layer gets this unknown term as the derivative of the distance or cost function, which is \\(\mathbf{y} - \mathbf{\bar{y}} \\) in case of the euclidean distance that we used previously. It turns out that this is the most efficient way to compute all the gradients of all layers. You can convince yourself that the gradients with respect to the bias follow the same propagation pattern. We'll see it when we start coding, which won't take long anymore.
+and it is the first term \\(\frac{\partial \mathcal{D}}{\partial \mathbf{f}_i}\\) that we can't calculate with mere knowledge of the current fuction. Luckily, we can get that term from the subsequent layer. And it's exactly the handback of this term from each layer to its prior layer that we call \\( \emph{backpropagation}\\). The following equations outline that backpropagation schematically. You may want to read it bottom up, where the last (here: third) layer gets this unknown term as the derivative of the distance or cost function, which is \\(\mathbf{y} - \mathbf{\bar{y}} \\) in case of the euclidean distance that we used previously. It turns out that this is the most efficient way to compute all the gradients of all layers. You can convince yourself that the gradients with respect to the bias follow the same propagation pattern. We'll see it when we start coding, which won't take long anymore.
 
 <br/>
 \begin{equation}\label{key}
