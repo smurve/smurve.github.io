@@ -12,7 +12,7 @@ permalink: yainn2
 
 We have seen that if we have an affine function with arbitrary weights \\(w_{ij} \\) and biases \\(b_k \\) and a sufficient number of input values (images) that we know the correct output values of, we can use the function's gradient to find those parameters that best produce the known output.
 
-We reasonably hope that the function also produces meaningful classifications for yet unseen input values. I use the word *hope* intentionally because the resulting function may indeed fail to generalize, i. e. fail to produce meaningful output on any new input values. This effect may be due to so-called *overfitting* or local minima, which both are so well described in Michael's Blog (REF!!!) that I reiterate my recommendation that you consult the text given there.
+We reasonably hope that the function also produces meaningful classifications for yet unseen input values. I use the word *hope* intentionally because the resulting function may indeed fail to generalize, i. e. fail to produce meaningful output on any new input values. This effect may be due to so-called *overfitting* or local minima, which both are so well described in Michael's Blog that I reiterate my recommendation that you consult the text given there.
 
 <br/>
 So, what we came up with until now was a function looking like:
@@ -171,7 +171,7 @@ trait Layer {
 
 ```
 
-The particular implementations for affine and activation layers make use of a simple but powerful optimization technique, therefore I postpone their discussion until we had the opportunity to address the subject of optimization in section \ref{accelerators}. 
+The particular implementations for affine and activation layers that you'll find on github make use of some simple but powerful optimization technique we don't know yet, therefore I postpone their discussion until we have the opportunity to address the subject of optimization in the next section.
 
 However, if you can't wait, you'll find the code in the accompanying github account at [the accompanying github account](https://github.com/smurve/yainn). Actually, the real code has more documentation than I can show here, and there's also comprehensive markdown documentation on the implementation specifics. Here, \\(T\\) is a general \\(m \times n\\) tensor, i.e. a vector or a matrix. It's actually an alias for ND4J's INDArray abstraction that allows for optimum performance by adressing the particular hardware implementation behind the scenes. It will, e.g., automatically choose GPUs if the libraries required for that are found on the class path. The misterious class ```BackPack``` holds the gradients and cost derivatives needed for backpropagation.
 
@@ -192,7 +192,7 @@ def createNetwork (nx: Int, nh: Int, ny: Int, seed: Long): Layer = {
 }
 ```
 <br/>
-And with such a network, our optimization algorithm \ref{algo} may look similar to the below (In reality, it's a bit more involved, so you'll see something slightly different in the real code)
+And with such a network, our optimization algorithm may look similar to the below (In reality, it's a bit more involved, so you'll see something slightly different in the real code)
 
 ```scala
 val nn = createNetwork(.....)
@@ -250,7 +250,7 @@ is just the matrix
 \mathbf{Y} := \mathbf{W} \cdot \mathbf{X} = (  \mathbf{y_1}, \mathbf{y_2}, \dots,  \mathbf{y_N}, )
 \end{equation}
 
-consisting of all of the results \\(\mathbf{y_i}\\) that we would have computed by multiplying by \\(\mathbf{W}\\) one by one. So, that was easy. Only, adding a bias \\(\mathbf{b}\\) wouldn't apply to each of the resulting \\(\mathbf{y_i}\\). Indeed, adding a vector to a matrix is not even well defined, so that's not an option. It takes the help of another little trick, to add the bias to every single of the \\(\mathbf{y_i}\\)
+consisting of all of the results \\(\mathbf{y_i}\\) that we would have computed by multiplying by \\(\mathbf{W}\\) one by one. So, that was easy. Only, adding a bias \\(\mathbf{b}\\) wouldn't apply to each of the resulting \\(\mathbf{y_i}\\). Indeed, adding a vector to a matrix is not even well defined, so that's not an option. It takes the help of another little trick, to add the bias to every single one vector of the \\(\mathbf{y_i}\\)
 
 If we stack the bias to the left of the weight matrix and pad the \\(\mathbf{X}\\) with a top row of \\(1\\)s, then we'll arrive at the following vector notation:
 
@@ -329,7 +329,7 @@ def func(x: T): T = {
 Here, the \\(\mathbf{h}\\) is a helper function that stacks the bias \\(\mathbf{b} \\) left to the weight matrix \\(\mathbf{W} \\) and  \\(\mathbf{v1} \\) is a function that stacks \\(1\\)s on top of \\(\mathbf{x} \\), the latter being the matrix consisting of an entire mini-batch of images.
 
 <br/>
-We still need to decide which particular activation functions we want to use. Up to now, we just called them \\(\mathbf{\Phi(\mathbf{x})} \\) and didn't care much. But eventually we need to, because those element-wise applied activation functions provide the important ingredient of non-linearity. Without those functions, any nested two affine functions would end up being just another affine function.  Wikipedia describes the most commonly used functions in a comprehensive article. In the accompanying code of this blog, we'll use  the so-called *rectified linear unit* or ReLU  and the \emph{sigmoid} function \\(\sigma(x) \\)  defined as 
+We still need to decide which particular activation functions we want to use. Up to now, we just called them \\(\mathbf{\Phi(\mathbf{x})} \\) and didn't care much. But eventually we need to, because those element-wise applied activation functions provide the important ingredient of non-linearity. Without those functions, any nested two affine functions would end up being just another affine function.  [Wikipedia](https://en.wikipedia.org/wiki/Activation_function) describes the most commonly used functions in a comprehensive article. In the accompanying code of this blog, we'll use  the so-called *rectified linear unit* or ReLU  and the *sigmoid* function \\(\sigma(x) \\)  defined as 
 
 \begin{equation}
  \text{ReLU}(x) = \text{max}(0, x) 
@@ -347,11 +347,12 @@ The sigmoid function \\(\sigma(x) \\) is one of the functions that are commonly 
 
 
 <br/>
-And this, finally, concludes the theory. We now know how to write a program that recognizes hand-written digits. We have learned how to find a good set of parameters for nested affine functions with non-linearities inbetween by simply minimizing an adequate \emph{cost function} through gradient descent.
-After a sufficient number of gradient descent steps we obtain a deep network function that - applied to any number of yet-unseen images - returns a matrix of one-hot vectors that represent the known classifications - as good as it can get with the given architecture.  
+And this, finally, concludes the theory. We now know how to write a program that recognizes hand-written digits. We have learned how to find a good set of parameters for nested affine functions with non-linearities inbetween by simply minimizing an adequate *cost function* through gradient descent.
+After a sufficient number of gradient descent steps we obtain a deep network function that - applied to any number of yet-unseen images - returns a matrix of one-hot vectors that represent the known classifications - as good as it can get with the given architecture. Congratulations! That was quite a piece of work.
 
+<br/>
 
-Please keep in mind that our discussions didn't cover performance, maintainability or even mathematical soundness to a perfectly satisfactory extend. I'm not saying that Scala is the only language that shall prevail. And I'm not saying that the code examples are perfect to go into production right away. After all, this blog and its accompanying code constitute no more than an academical exercise. An exercise, though, that I found worth writing and I hope you - in retrospect - find worth reading.
+But please keep in mind that our discussions didn't cover performance, maintainability or even mathematical soundness to a perfectly satisfactory extend. I'm not saying that this text is comprehensive or even complete, and I'm not saying that Scala is the only language that can do the job. Neither would I ever claim that the provided code examples are perfect to go into production right away. After all, this blog and its accompanying code constitute no more than an academic, hopefully to some degree recreational exercise. An exercise, that I found worth writing and I hope that you - in retrospect - find worth reading. 
 
 
 #### Where to Go From Here
@@ -366,42 +367,36 @@ I invite you now to go to github and check out my little [Scala project](https:/
 *there's practices to merge and a whole bunch of amazing new things to learn for everybody!*
 
 <br/>
-\begin{thebibliography}{9}
-	
-	
-	\bibitem{nielson2015}
-	Michael A Nielson, \textit{Neural Networks and Deep Learning}.
-	Determination Press, 2015
-	\\\texttt{http://neuralnetworksanddeeplearning.com/}
-	
-	\bibitem{olah2015}
-	Christopher Olah. \textit{colah's Blog}
-	Personal blog
-	
-	\bibitem{goodfellow}
-	Ian Goodfellow, Yoshua Bengio, Aaron Courville, \textit{	Deep Learning }
-	Online book MIT Press 2016,
-	\texttt{http://www.deeplearningbook.org}
 
-	\bibitem{gartner2017}
-	Gartner's Hype Cycle. Web Resource.
-	\\\texttt{ (http://www.gartner.com/smarterwithgartner/top-trends-in-the-gartner-hype-cycle-for-emerging-technologies-2017/)}
-	
-	\bibitem{wampler2016}
-	Dean Wampler. \textit{Scala, the unpredicted lingua franca for data science}
-	 \\\texttt{https://www.youtube.com/watch?v=3\_oV25nZz8I\&t=741s}
-	Youtube recording. Scala Days NY 2016
-	
-	\bibitem{nd4j}
-	ND4J Development Team. ND4J: N-dimensional arrays and scientific computing for the JVM, Apache Software Foundation License 2.0.* 
-	\\\texttt{http://nd4j.org}
-	
-	\bibitem{yainn2017}
-	Wolfgang I. Giersche, \textit{yainn}. Github Repo
-	\\\texttt{https://github.com/smurve/yainn}
-	
-	\bibitem{mnist89}
-	LeCun, Y., Bottou, L., Bengio, Y., and Haffner, P. (1998). \textit{Gradient-based learning applied to document recognition}. Proceedings of the IEEE, 86, 2278–2324.	
-	\\Data files and results at \texttt{http://yann.lecun.com/exdb/mnist/}
-\end{thebibliography}
+### Bibliography
+
+1) Michael A Nielson, *Neural Networks and Deep Learning*.
+Determination Press, 2015.
+[Link](http://neuralnetworksanddeeplearning.com)
+
+2)	Christopher Olah. *colah's Blog*
+Personal blog
+[Link](https://colah.github.io)
+
+3) Ian Goodfellow, Yoshua Bengio, Aaron Courville, *Deep Learning*
+Online book MIT Press 2016,
+[Link](http://www.deeplearningbook.org)
+
+4) Gartner's Hype Cycle. Web Resource. 2017.
+[Link](http://www.gartner.com/smarterwithgartner/top-trends-in-the-gartner-hype-cycle-for-emerging-technologies-2017/)
+
+5) Dean Wampler. *Scala, the unpredicted lingua franca for data science*
+Youtube recording. Scala Days NY 2016
+
+6) ND4J Development Team. ND4J: *N-dimensional arrays and scientific computing for the JVM*
+Apache Software Foundation License 2.0.
+[Link](http://nd4j.org)
+
+7) Wolfgang I. Giersche, *Yet another introduction to neural networks*
+Github Repo
+[Link](https://github.com/smurve/yainn)
+
+8) LeCun, Y., Bottou, L., Bengio, Y., and Haffner, P. *Gradient-based learning applied to document recognition*. 
+Proceedings of the IEEE, 86, 2278–2324.	1998
+[Data files and results](http://yann.lecun.com/exdb/mnist)
 
